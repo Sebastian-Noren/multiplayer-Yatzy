@@ -67,8 +67,6 @@ public class CreateGameDialog extends AppCompatDialogFragment {
         setStyle(DialogFragment.STYLE_NO_FRAME, R.style.colorPickerStyle);
         // this setStyle is VERY important.
         // STYLE_NO_FRAME means that I will provide my own layout and style for the whole dialog
-        // so for example the size of the default dialog will not get in my way
-        // the style extends the default one. see bellow.
     }
 
     @Override
