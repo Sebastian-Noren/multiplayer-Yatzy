@@ -39,7 +39,7 @@ public class SetupFragment extends Fragment {
             public void run() {
                 Log.d(tag, "Thread started!");
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(1000);
                     // code for going to login, IMPORTANT!
                     navController.navigate(R.id.navigation_Login);
                 } catch (InterruptedException e) {
