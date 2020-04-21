@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.core.widget.ListViewCompat;
 import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
@@ -38,17 +39,17 @@ import software.engineering.yatzy.testing.localDatabase.DataBaseAccess;
 public class CreateGameDialog extends AppCompatDialogFragment {
     private String tag = "Info";
     private TextView inputGameName, listCounterText;
-    private RecyclerView recViewInvitePlayers;
     private InviteSearchAdapter inviteSearchAdapter;
+    private ItemTouchHelper.SimpleCallback itemTouchHelperCallback;
     private AutoCompleteTextView searchPlayer;
     private ArrayList<Player> invitedPlayerList;
     private ImageButton saveBtn, cancelBtn;
     private short counter = 0;
 
-    //TODO 1. Create to remove invited player from list
     //TODO 2. Try to hide the F*** keyboard
     //TODO 3. More graphic styling
     //TODO 4. Send correct data down to HomeFragment, Work with interface
+    //TODO 5. Make so string input are safe
     //TODO Delete later on when database is online
     private DataBaseAccess dataBaseAccess;
 
@@ -64,6 +65,19 @@ public class CreateGameDialog extends AppCompatDialogFragment {
         View view = inflater.inflate(R.layout.create_new_game_popup, container, false);
         Log.d(tag, "Create account dialog open");
         dataBaseAccess =  DataBaseAccess.getInstance(getContext());
+
+        itemTouchHelperCallback = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                invitedPlayerList.remove(viewHolder.getAdapterPosition());
+                inviteSearchAdapter.notifyDataSetChanged();
+            }
+        };
 
         initDialog(view);
         initSearchList();
@@ -98,9 +112,11 @@ public class CreateGameDialog extends AppCompatDialogFragment {
                 String str1 = inputGameName.getText().toString().trim();
                 getDialog().dismiss();
                 Utilities.hideSoftKeyboard(getActivity());
+                //TODO chhange value that will be sent
                 onSelectedInput.saveComplete(str1, 5, "xxxx");
             }
         });
+
 
         return view;
     }
@@ -148,11 +164,12 @@ public class CreateGameDialog extends AppCompatDialogFragment {
         cancelBtn = view.findViewById(R.id.account_cancelBtn);
         inputGameName = view.findViewById(R.id.input_new_game);
         searchPlayer = view.findViewById(R.id.autoCompleteTextView);
-        recViewInvitePlayers = view.findViewById(R.id.create_game_invite_recyclerlist);
+        RecyclerView recViewInvitePlayers = view.findViewById(R.id.create_game_invite_recyclerlist);
         recViewInvitePlayers.setLayoutManager(new LinearLayoutManager(getContext()));
         recViewInvitePlayers.setHasFixedSize(true);
         invitedPlayerList = new ArrayList<>();
         inviteSearchAdapter = new InviteSearchAdapter(getContext(),invitedPlayerList);
+        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recViewInvitePlayers);
         recViewInvitePlayers.setAdapter(inviteSearchAdapter);
     }
 

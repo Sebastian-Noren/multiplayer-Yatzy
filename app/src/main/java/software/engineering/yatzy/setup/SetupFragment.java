@@ -27,8 +27,8 @@ public class SetupFragment extends Fragment {
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
 
         //Fake loading to server
-        fakeServerConection();
-
+       // fakeServerConection();
+        navController.navigate(R.id.navigation_Login);
         return view;
     }
 
