@@ -32,7 +32,6 @@ public class SetupFragment extends Fragment {
         return view;
     }
 
-
     private void fakeServerConection(){
         Thread th = new Thread(new Runnable() {
             @Override
