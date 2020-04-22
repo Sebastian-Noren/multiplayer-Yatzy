@@ -22,11 +22,10 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
-import software.engineering.yatzy.Utilities;
 
 public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput {
 
-    private String tag = "Info";
+    private static final String TAG = "Info";
     private NavController navController;
     private FloatingActionButton fabStart, fabCreateGame;
     private TextView textCreateGame;
@@ -36,11 +35,11 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     private OvershootInterpolator interpolator = new OvershootInterpolator();
     private GameOverviewAdapter gameAdapter;
     private CreateGameDialog createGameDialog;
-    ArrayList<Game> games = new ArrayList<>();
+    ArrayList<GameSessionList> gameSessionLists = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
-        Log.d(tag, "In the HomeFragment");
+        Log.d(TAG, "In the HomeFragment");
         init(view);
 
         //Main button
@@ -80,10 +79,10 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         //TODO remove, will be based on a real arraylist later.
-        games.add(new Game("Game 1", "Pending"));
-        games.add(new Game("Game 2", "playing"));
+        gameSessionLists.add(new GameSessionList("Game 1", "Pending"));
+        gameSessionLists.add(new GameSessionList("Game 2", "playing"));
 
-        gameAdapter = new GameOverviewAdapter(getContext(), games);
+        gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
         recyclerView.setAdapter(gameAdapter);
 
         fabStart = view.findViewById(R.id.fabStart);
@@ -124,70 +123,70 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d(tag, "HomeFragment: In the onDestroyView() event");
+        Log.d(TAG, "HomeFragment: In the onDestroyView() event");
     }
 
     // 1
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        Log.d(tag, "HomeFragment: In the onAttach() event");
+        Log.d(TAG, "HomeFragment: In the onAttach() event");
     }
     //2
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(tag, "HomeFragment: In the OnCreate event()");
+        Log.d(TAG, "HomeFragment: In the OnCreate event()");
     }
     //4
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.d(tag, "HomeFragment: In the onActivityCreated() event");
+        Log.d(TAG, "HomeFragment: In the onActivityCreated() event");
     }
     //5
     @Override
     public void onStart() {
         super.onStart();
-        Log.d(tag, "HomeFragment: In the onStart() event");
+        Log.d(TAG, "HomeFragment: In the onStart() event");
     }
     //6
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(tag, "HomeFragment: In the onResume() event");
+        Log.d(TAG, "HomeFragment: In the onResume() event");
     }
     //7
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(tag, "HomeFragment: In the onPause() event");
+        Log.d(TAG, "HomeFragment: In the onPause() event");
     }
     //8
     @Override
     public void onStop() {
         super.onStop();
-        Log.d(tag, "HomeFragment: In the onStop() event");
+        Log.d(TAG, "HomeFragment: In the onStop() event");
     }
 
     //10
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(tag, "HomeFragment: In the onDestroy() event");
+        Log.d(TAG, "HomeFragment: In the onDestroy() event");
     }
     //11
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.d(tag, "HomeFragment: In the onDetach() event");
+        Log.d(TAG, "HomeFragment: In the onDetach() event");
     }
 
     //TODO Create new values when hosting a game
     @Override
     public void saveComplete(String input, double value, String notes) {
 
-        games.add(new Game(input, notes));
+        gameSessionLists.add(new GameSessionList(input, notes));
         gameAdapter.notifyDataSetChanged();
     }
 }

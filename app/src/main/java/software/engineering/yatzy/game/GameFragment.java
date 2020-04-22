@@ -18,6 +18,8 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Random;
 
 import androidx.annotation.NonNull;
@@ -26,13 +28,15 @@ import androidx.fragment.app.Fragment;
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.Utilities;
 
-//TODO ALOT OF THINGS
+//TODO 1: Make a frame move to next player
+//TODO 2: Create gamerules wherte to place score
+
 public class GameFragment extends Fragment {
 
-    private String tag = "Info";
-    private int PLAYERS = 4;
-    private int SCOREBOARD_SIZE = 18;
-    private static float DICE_START_POSITIONX = 500f;
+    private static final String TAG = "Info";
+    private static final int PLAYERS = 4;
+    private static final int SCOREBOARD_SIZE = 18;
+    private static final float DICE_START_POSITIONX = 500f;
     private TextView turnStateText;
     private ArtEngine artEngine;
     private SoundEngine soundEngine;
@@ -45,11 +49,13 @@ public class GameFragment extends Fragment {
     private BounceInterpolator interpolator = new BounceInterpolator();
     private short tempTurn = 0;
 
+    private ArrayList<TableLayout> tables;
+
     private boolean firstThrowAllDiceHasLanded = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_game, container, false);
-        Log.d(tag, "In the GameFragment");
+        Log.d(TAG, "In the GameFragment");
         artEngine = new ArtEngine(getResources());
         soundEngine = new SoundEngine(getContext());
         final Button rollButton = view.findViewById(R.id.rollBtn);
@@ -58,7 +64,7 @@ public class GameFragment extends Fragment {
         diceImages = new ImageView[5];
         diceAnim = new AnimationDrawable[5];
 
-        final ImageButton soundButton = view.findViewById(R.id.soundBtn);
+        ImageButton soundButton = view.findViewById(R.id.soundBtn);
         ImageButton chatButton = view.findViewById(R.id.chatBtn);
 
 
@@ -77,9 +83,9 @@ public class GameFragment extends Fragment {
         rollButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "Rolling dice! ");
                 soundEngine.buttonClick();
                 tempTurn++;
-                Log.i(tag, "Rolling dice! ");
                 //TODO Sync "dice" with server
                 dice = diceRollAlgorithm();
 
@@ -89,7 +95,6 @@ public class GameFragment extends Fragment {
                     resetSelectedDice();
                     rollAgainDiceAnimation();
                 }
-
                 turnStateText.setText(MessageFormat.format("{0}/3", tempTurn));
                 if (tempTurn == 3) {
                     rollButton.setEnabled(false);
@@ -102,7 +107,7 @@ public class GameFragment extends Fragment {
             public void onClick(View v) {
                 if (soundEngine.isSoundOn()) {
                     soundEngine.pauseGameBgSound();
-                }else {
+                } else {
                     soundEngine.resumeGameBgSound();
                 }
             }
@@ -111,7 +116,7 @@ public class GameFragment extends Fragment {
         chatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Utilities.toastMessage(getContext(),"ALi will fix this, Go Chat!!");
+                Utilities.toastMessage(getContext(), "Ali will fix this, Go Chat!!");
             }
         });
 
@@ -236,7 +241,7 @@ public class GameFragment extends Fragment {
         int[] temp = new int[5];
         for (int i = 0; i < temp.length; i++) {
             temp[i] = (int) (Math.random() * 6) + 1;
-            Log.i(tag, "diceRollAlgorithm: " + temp[i]);
+            Log.i(TAG, "diceRollAlgorithm: " + temp[i]);
         }
         return temp;
     }
@@ -264,28 +269,34 @@ public class GameFragment extends Fragment {
 
     private void selectedDice(short val) {
         if (!dices[val].isRolling() && !dices[val].isSelected()) {
-            Log.i(tag, String.format("%s selected, with value: %d", dices[val].getDiceName(), dices[val].getDiceValue()));
+            Log.i(TAG, String.format("%s selected, with value: %d", dices[val].getDiceName(), dices[val].getDiceValue()));
             diceImages[val].setBackground(artEngine.getHighlight());
             dices[val].setSelected(true);
         } else {
             diceImages[val].setBackground(null);
             dices[val].setSelected(false);
-            Log.i(tag, String.format("%s deselected!", dices[val].getDiceName()));
+            Log.i(TAG, String.format("%s deselected!", dices[val].getDiceName()));
         }
     }
 
     // Score Board
     private void addTable(final Context context, View view) {
+        final float scale = Objects.requireNonNull(getContext()).getResources().getDisplayMetrics().density;
 
         LinearLayout l = view.findViewById(R.id.tables_players);
+        tables = new ArrayList<>();
 
-        TableLayout.LayoutParams tableParams = new TableLayout.LayoutParams(TableLayout.LayoutParams.WRAP_CONTENT, TableLayout.LayoutParams.WRAP_CONTENT);
-        TableRow.LayoutParams rowParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        TableLayout.LayoutParams tableParams = new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.MATCH_PARENT);
+        TableRow.LayoutParams rowParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT);
         Random rand = new Random();
         for (int i = 0; i < PLAYERS; i++) {
 
+
+            int pixels = (int) (85 * scale + 0.5f);
+
             TableLayout tableLayout = new TableLayout(context);
-            tableLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));// assuming the parent view is a LinearLayout
+            tableLayout.setLayoutParams(new LinearLayout.LayoutParams(pixels, LinearLayout.LayoutParams.MATCH_PARENT));// assuming the parent view is a LinearLayout
+            // tableLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
 
             Player player = new Player("Player " + i);
             int[] scoareBoard = new int[SCOREBOARD_SIZE];
@@ -294,6 +305,11 @@ public class GameFragment extends Fragment {
             //Header name
             TableRow tableRowHeader = new TableRow(context);
             tableRowHeader.setLayoutParams(tableParams);// TableLayout is the parent view
+            tableRowHeader.setGravity(Gravity.CENTER);
+            //  tableRowHeader.setBackgroundColor(getResources().getColor(R.color.colorTest));
+            tableRowHeader.setForeground(getResources().getDrawable(R.drawable.row_border));
+
+
             tableLayout.addView(tableRowHeader);
 
             TextView headerPlayerName = new TextView(context);
@@ -304,8 +320,11 @@ public class GameFragment extends Fragment {
             tableRowHeader.addView(headerPlayerName);
 
             for (int f = 0; f < SCOREBOARD_SIZE; f++) {
+                tableParams.weight = 1;
                 TableRow tableRowtest = new TableRow(context);
                 tableRowtest.setLayoutParams(tableParams);// TableLayout is the parent view
+                tableRowtest.setGravity(Gravity.CENTER);
+                tableRowtest.setForeground(getResources().getDrawable(R.drawable.row_border));
                 tableLayout.addView(tableRowtest);
 
                 TextView textView2 = new TextView(context);
@@ -318,7 +337,6 @@ public class GameFragment extends Fragment {
                 tableRowtest.addView(textView2);
 
                 //allows you to select a specific row
-                tableRowtest.setClickable(true);
                 tableRowtest.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View view) {
                         TableRow tablerow = (TableRow) view;
@@ -329,51 +347,65 @@ public class GameFragment extends Fragment {
                         // Log.i(tag,result);
                     }
                 });
+                tableRowtest.setClickable(false);
             }
 
-            l.addView(tableLayout);
+            tables.add(tableLayout);
+        }
+
+
+        for (TableLayout layout : tables) {
+            l.addView(layout);
+        }
+
+        tables.get(1).setBackgroundColor(getResources().getColor(R.color.colorTest));
+
+        for (int i = 0; i < tables.get(1).getChildCount(); i++) {
+            Log.i(TAG, String.valueOf(i));
+            TableRow row = (TableRow) tables.get(1).getChildAt(i);
+            row.setClickable(true);
         }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d(tag, "GameFragment: In the onDestroyView() event");
+        Log.d(TAG, "GameFragment: In the onDestroyView() event");
     }
 
     // 1
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        Log.d(tag, "GameFragment: In the onAttach() event");
+        Log.d(TAG, "GameFragment: In the onAttach() event");
     }
 
     //2
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(tag, "GameFragment: In the OnCreate event()");
+        Log.d(TAG, "GameFragment: In the OnCreate event()");
     }
 
     //4
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.d(tag, "GameFragment: In the onActivityCreated() event");
+        Log.d(TAG, "GameFragment: In the onActivityCreated() event");
     }
 
     //5
     @Override
     public void onStart() {
         super.onStart();
-        Log.d(tag, "GameFragment: In the onStart() event");
+        Log.d(TAG, "GameFragment: In the onStart() event");
     }
 
     //6
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(tag, "GameFragment: In the onResume() event");
+        Log.d(TAG, "GameFragment: In the onResume() event");
         soundEngine.resumeGameBgSound();
     }
 
@@ -381,7 +413,7 @@ public class GameFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(tag, "GameFragment: In the onPause() event");
+        Log.d(TAG, "GameFragment: In the onPause() event");
         soundEngine.pauseGameBgSound();
     }
 
@@ -389,14 +421,14 @@ public class GameFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        Log.d(tag, "GameFragment: In the onStop() event");
+        Log.d(TAG, "GameFragment: In the onStop() event");
     }
 
     //10
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(tag, "GameFragment: In the onDestroy() event");
+        Log.d(TAG, "GameFragment: In the onDestroy() event");
         soundEngine.stopGameBgSound();
     }
 
@@ -404,7 +436,7 @@ public class GameFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.d(tag, "GameFragment: In the onDetach() event");
+        Log.d(TAG, "GameFragment: In the onDetach() event");
     }
 
 }

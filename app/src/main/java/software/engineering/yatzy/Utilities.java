@@ -7,7 +7,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 public class Utilities {
-    private static String tag = "Info";
+    private static final String TAG = "Info";
 
     public static void hideSoftKeyboard(Activity activity) {
         try {
@@ -16,7 +16,7 @@ public class Utilities {
                 inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
             }
         } catch (Exception e) {
-            Log.e(tag, e.getMessage());
+            Log.e(TAG, e.getMessage());
         }
     }
 
