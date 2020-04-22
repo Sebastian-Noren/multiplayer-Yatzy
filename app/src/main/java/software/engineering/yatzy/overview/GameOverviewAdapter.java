@@ -16,7 +16,7 @@ import software.engineering.yatzy.R;
 public class GameOverviewAdapter extends RecyclerView.Adapter<GameOverviewAdapter.GameItemCardHolder> {
 
     Context context;
-    private ArrayList<Game> games; // this array lis create a which parameters defiune in our model class;
+    private ArrayList<GameSessionList> gameSessionLists; // this array lis create a which parameters defiune in our model class;
     private ItemClickListener itemClickListener;
 
     public interface ItemClickListener {
@@ -27,9 +27,9 @@ public class GameOverviewAdapter extends RecyclerView.Adapter<GameOverviewAdapte
         this.itemClickListener = listener;
     }
 
-    public GameOverviewAdapter(Context context, ArrayList<Game> gameSessionsArrayList) {
+    public GameOverviewAdapter(Context context, ArrayList<GameSessionList> gameSessionListSessionsArrayList) {
         this.context = context;
-        this.games = gameSessionsArrayList;
+        this.gameSessionLists = gameSessionListSessionsArrayList;
     }
 
     @NonNull
@@ -44,15 +44,15 @@ public class GameOverviewAdapter extends RecyclerView.Adapter<GameOverviewAdapte
     public void onBindViewHolder(@NonNull GameItemCardHolder holder, int position) {
 
         //TODO add game names etc here later
-        holder.title.setText(games.get(position).getTitle());
-        holder.gameStatusText.setText(games.get(position).getGameStatus());
+        holder.title.setText(gameSessionLists.get(position).getTitle());
+        holder.gameStatusText.setText(gameSessionLists.get(position).getGameStatus());
         //in resource folder which is drawable
 
     }
 
     @Override
     public int getItemCount() {
-        return games.size();
+        return gameSessionLists.size();
     }
 
     static class GameItemCardHolder extends RecyclerView.ViewHolder {

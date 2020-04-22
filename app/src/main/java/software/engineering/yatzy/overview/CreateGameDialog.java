@@ -112,7 +112,7 @@ public class CreateGameDialog extends AppCompatDialogFragment {
                 String str1 = inputGameName.getText().toString().trim();
                 getDialog().dismiss();
                 Utilities.hideSoftKeyboard(getActivity());
-                //TODO chhange value that will be sent
+                //TODO change value that will be sent
                 onSelectedInput.saveComplete(str1, 5, "xxxx");
             }
         });

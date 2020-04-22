@@ -1,11 +1,11 @@
 package software.engineering.yatzy.overview;
 
-public class Game {
+public class GameSessionList {
 
     private String title;
     private String gameStatus;
 
-    public Game(String title, String gameStatus) {
+    public GameSessionList(String title, String gameStatus) {
         this.title = title;
         this.gameStatus = gameStatus;
     }
