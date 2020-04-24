@@ -27,11 +27,10 @@ public class SetupFragment extends Fragment {
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
 
         //Fake loading to server
-        fakeServerConection();
-
+       // fakeServerConection();
+        navController.navigate(R.id.navigation_Login);
         return view;
     }
-
 
     private void fakeServerConection(){
         Thread th = new Thread(new Runnable() {
@@ -39,7 +38,7 @@ public class SetupFragment extends Fragment {
             public void run() {
                 Log.d(tag, "Thread started!");
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(1000);
                     // code for going to login, IMPORTANT!
                     navController.navigate(R.id.navigation_Login);
                 } catch (InterruptedException e) {
