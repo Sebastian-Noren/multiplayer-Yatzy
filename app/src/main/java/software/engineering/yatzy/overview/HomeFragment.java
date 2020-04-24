@@ -35,7 +35,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     private OvershootInterpolator interpolator = new OvershootInterpolator();
     private GameOverviewAdapter gameAdapter;
     private CreateGameDialog createGameDialog;
-    ArrayList<GameSessionList> gameSessionLists = new ArrayList<>();
+    ArrayList<Room> gameSessionLists = new ArrayList<>();
+    private int roomID = 0;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
@@ -79,8 +80,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         //TODO remove, will be based on a real arraylist later.
-        gameSessionLists.add(new GameSessionList("Game 1", "Pending"));
-        gameSessionLists.add(new GameSessionList("Game 2", "playing"));
+        gameSessionLists.add(new Room("Room 1","4 players","Ongoing",1));
+        gameSessionLists.add(new Room("Game 2", "Monkey was the winner","Finished",2));
 
         gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
         recyclerView.setAdapter(gameAdapter);
@@ -185,8 +186,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     //TODO Create new values when hosting a game
     @Override
     public void saveComplete(String input, double value, String notes) {
-
-        gameSessionLists.add(new GameSessionList(input, notes));
+        //String title, String description, String status, int roomID)
+        gameSessionLists.add(new Room(input, notes,"Ongoing",++roomID));
         gameAdapter.notifyDataSetChanged();
     }
 }

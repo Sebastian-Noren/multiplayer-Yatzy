@@ -22,7 +22,7 @@
         tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_navigation_Login_to_navigation_home"
-            app:destination="@id/navigation_home" />
+            app:destination="@id/navigation_main" />
     </fragment>
 
     <fragment
@@ -30,6 +30,12 @@
         android:name="software.engineering.yatzy.overview.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/navigation_main"
+        android:name="software.engineering.yatzy.overview.MainFragment"
+        android:label="@string/title_main"
+        tools:layout="@layout/main_fragment" />
 
     <fragment
         android:id="@+id/navigation_game"
