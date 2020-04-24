@@ -12,6 +12,8 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import software.engineering.yatzy.appManagement.AppManager;
+
 public class MainActivity extends AppCompatActivity {
 
     private String tag = "Info";
@@ -20,6 +22,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d(tag, "MainActivity: In the onCreate() event");
+
+        AppManager.getInstance().startService(getApplicationContext());
     }
 
 
@@ -42,11 +47,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d(tag, "MainActivity: In the onResume() event");
+
+        AppManager.getInstance().bindToService();
     }
 
     protected void onPause() {
         super.onPause();
         Log.d(tag, "MainActivity: In the onPause() event");
+
+        AppManager.getInstance().unBindFromService();
     }
 
     protected void onStop() {
@@ -57,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(tag, "MainActivity: In the onDestroy() event");
+
+        AppManager.getInstance().killService();
     }
 
 }
