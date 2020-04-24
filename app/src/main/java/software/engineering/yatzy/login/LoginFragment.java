@@ -32,7 +32,7 @@ public class LoginFragment extends Fragment {
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                navController.navigate(R.id.navigation_home);
+                navController.navigate(R.id.navigation_main);
             }
         });
 
