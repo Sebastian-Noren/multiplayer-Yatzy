@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Yatzy</string>
     <string name="title_home">Home</string>
+    <string name="title_main">Home</string>
+
+    <string name="settings">Settings</string>
+    <string name="highscore">Highscore</string>
+    <string name="main">Main</string>
 
 </resources>
