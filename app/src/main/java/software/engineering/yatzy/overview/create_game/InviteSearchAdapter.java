@@ -1,4 +1,4 @@
-package software.engineering.yatzy.overview;
+package software.engineering.yatzy.overview.create_game;
 
 import android.content.Context;
 import android.view.LayoutInflater;
