@@ -44,17 +44,10 @@ public class GameOverviewAdapter extends RecyclerView.Adapter<GameOverviewAdapte
     @Override
     public void onBindViewHolder(@NonNull GameItemCardHolder holder, int position) {
 
-        //TODO add game names etc here later
-//        holder.title.setText(gameSessionLists.get(position).getTitle());
-//        holder.gameStatusText.setText(gameSessionLists.get(position).getGameStatus());
-        //in resource folder which is drawable
-
         Room room = gameSessionLists.get(position);
-
         holder.status.setText(room.getStatus());
         holder.description.setText(room.getDescription());
         holder.title.setText(room.getTitle());
-
     }
 
     @Override
@@ -63,16 +56,10 @@ public class GameOverviewAdapter extends RecyclerView.Adapter<GameOverviewAdapte
     }
 
     static class GameItemCardHolder extends RecyclerView.ViewHolder {
-
-        //TextView title, gameStatusText;
         TextView status, description, title;
-
 
         GameItemCardHolder(@NonNull View itemView, final ItemClickListener listener) {
             super(itemView);
-
-//            this.title = itemView.findViewById(R.id.gamecard_row_title);
-//            this.gameStatusText = itemView.findViewById(R.id.gamecard_row_text);
 
             this.status = itemView.findViewById(R.id.text_view_status);
             this.description = itemView.findViewById(R.id.text_view_description);

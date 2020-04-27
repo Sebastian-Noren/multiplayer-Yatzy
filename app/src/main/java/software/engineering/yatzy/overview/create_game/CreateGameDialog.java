@@ -1,23 +1,16 @@
-package software.engineering.yatzy.overview;
+package software.engineering.yatzy.overview.create_game;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.InputType;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
-import com.mancj.materialsearchbar.MaterialSearchBar;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -25,7 +18,6 @@ import java.util.ArrayList;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
-import androidx.core.widget.ListViewCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -54,7 +46,7 @@ public class CreateGameDialog extends AppCompatDialogFragment {
     private DataBaseAccess dataBaseAccess;
 
     public interface OnSelectedInput {
-        void saveComplete(String input, double value, String notes);
+        void saveComplete(String gameName, String host, ArrayList<String> invitedPlayers);
     }
 
     private OnSelectedInput onSelectedInput;
@@ -108,12 +100,17 @@ public class CreateGameDialog extends AppCompatDialogFragment {
             @Override
             public void onClick(View v) {
                 Log.i(tag, "Save clicked");
-
-                String str1 = inputGameName.getText().toString().trim();
+                String gameName = inputGameName.getText().toString().trim();
                 getDialog().dismiss();
                 Utilities.hideSoftKeyboard(getActivity());
                 //TODO change value that will be sent
-                onSelectedInput.saveComplete(str1, 5, "xxxx");
+                String host = "PlayerHost";
+
+                ArrayList<String> listPlayers = new ArrayList<>();
+                for (Player players: invitedPlayerList) {
+                    listPlayers.add(players.getName());
+                }
+                onSelectedInput.saveComplete(gameName, host, listPlayers);
             }
         });
 

@@ -10,6 +10,7 @@
 
     <style name="colorPickerStyle" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowBackground">@drawable/dialog_background</item>
     </style>
 
 

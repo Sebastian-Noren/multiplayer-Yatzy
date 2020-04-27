@@ -10,6 +10,11 @@ public class Player {
         this.name = name;
     }
 
+    public Player(String name, int[] scoreBoard) {
+        this.name = name;
+        this.scoreBoard = scoreBoard;
+    }
+
     public Player() {
     }
 
