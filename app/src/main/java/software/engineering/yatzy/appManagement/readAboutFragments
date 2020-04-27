@@ -1,0 +1,10 @@
+To synchronize with AppManager, and hence the Server, each GUI Fragment should:
+
+1. Implement Updatable interface
+This provides the ability to receive asynchronous updates from cloud. By examining the arguments
+passed in the update() method, each Fragment may decide whether it is affected by the update and
+should load in some new data from global variables. See interface Updatable for further description.
+
+2. Report itself as the currently displayed fragment to AppManager
+AppManager.getInstance().currentFragment = this;
+This way the AppManager can update (only) the relevant Fragment by calling: currentFragment.update(arguments)

@@ -19,8 +19,8 @@ import java.util.concurrent.BlockingQueue;
 import software.engineering.yatzy.Utilities;
 
 public class NetworkService extends Service {
-    //Log for debugging
-    private static final String TAG = "NetworkService";
+
+    private static final String TAG = "Network NetworkService";
 
     // Binder object to bind client(s) to the service
     private IBinder binder = new MyBinder();
@@ -59,46 +59,41 @@ public class NetworkService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d("NetworkActivity2", "IS BBBBB " + ccc++);
+        Log.d(TAG, "onBind " + ccc++);
         return binder;
     }
 
     // REMOVE LATER
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.d("NetworkActivity2", "onUnbind " + ccc++);
+        Log.d(TAG, "onUnbind " + ccc++);
         return super.onUnbind(intent);
     }
 
     @Override
     public void onDestroy() {
-        Log.d("NetworkActivity2", "destroy service " + ccc++);
+        Log.d(TAG, "destroy service " + ccc++);
         serviceShutDown = true;
         super.onDestroy();
     }
 
     /*
-    onTaskRemoved will be called when the application is removed from the recently used applications list
-    = When the app is terminated from the list of open apps (seen by the user)
-    With bound services the service will continue running until the last client has unBound from the service.
-    That is ok, BUT this can be used instead of waiting for the last client to unBound.
-    Instead we stop the service manually from within the service.
+    onTaskRemoved is called when the application is terminated from the list of open apps (seen by the user)
     -> stopSelf = a hard stop.
-    -> Avoid having the service running in the background even though the application has been closed.
-    -> Avoid having the application running even after it's been swiped out by the user.
-    -> Adapted for start AND bind service, not so much just bound services, where the client unbinds
-       and the service automatically terminates after last client has unbound. (Still a good safety measure)
+    -> Adapted for start AND bind services, not bound services (where the service self-terminates when last client unbinds).
+    -> Safety measure to avoid having the service running in the background even though the application has been closed
      */
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         // + stop threads running
+        Log.d(TAG, "Service dead");
         stopSelf();
 
-        Log.d("NetworkActivity2", "Service dead");
     }
 
-    // TEST
+    // =================================== TEST ====================================================
+
     volatile boolean serviceShutDown = false;
     public void test(final Handler handler) {
         new Thread(new Runnable() {
@@ -116,8 +111,8 @@ public class NetworkService extends Service {
                         @Override
                         public void run() {
                             AppManager.getInstance().testInt = count;
-                            AppManager.getInstance().update("");
-                            Log.d("NetworkActivity2", "count " + count);
+                            AppManager.getInstance().update();
+                            Log.d(TAG, "count " + count);
                         }
                     });
                 }
@@ -125,13 +120,12 @@ public class NetworkService extends Service {
         }).start();
     }
 
-
-
     // ============= CUSTOM UTILITY THREADS AND METHODS ==========================
     // inputThread will launch outputThread
     // inputThread will terminate outputThread when itself is terminated.
 
     public volatile boolean socketException = false;
+    private volatile boolean intendedSocketClose = false;
 
     public void connectToCloudServer(Handler handler) {
         if(inputThread == null) {
@@ -145,6 +139,7 @@ public class NetworkService extends Service {
         if (inputThreadRunning) {
             // Terminate inputThread
             if(socket != null) {
+                intendedSocketClose = true;
                 try {
                     // Throw IOException
                     socket.close();
@@ -197,6 +192,7 @@ public class NetworkService extends Service {
         public void run() {
             try {
                 inputThreadRunning = true;
+                intendedSocketClose = false;
 
                 Log.d(TAG, "Input thread started " + Thread.currentThread().getName());
                 // Try to establish the connection with cloud server (IOException if not possible)
@@ -237,6 +233,9 @@ public class NetworkService extends Service {
                 updateUIThread("20");
 
                 Log.d(TAG, "Input thread closed " + Thread.currentThread().getName());
+                if(!intendedSocketClose) {
+                    // Reconnect
+                }
             }
         }
 

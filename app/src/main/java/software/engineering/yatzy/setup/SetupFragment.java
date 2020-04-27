@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.appManagement.Updatable;
 
 public class SetupFragment extends Fragment {
 

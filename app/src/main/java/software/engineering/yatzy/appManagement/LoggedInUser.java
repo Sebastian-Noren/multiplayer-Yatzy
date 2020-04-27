@@ -4,8 +4,8 @@ public class LoggedInUser {
 
     private String nameID;
     private String sessionKey;
-    private int gamesPlayed;
-    private int highScore;
+    public int gamesPlayed;
+    public int highScore;
 
     public LoggedInUser(String nameID, String sessionKey, int gamesPlayed, int highScore) {
         this.nameID = nameID;
@@ -14,5 +14,12 @@ public class LoggedInUser {
         this.highScore = highScore;
     }
 
+    public String getNameID() {
+        return nameID;
+    }
+
+    public String getSessionKey() {
+        return sessionKey;
+    }
 
 }

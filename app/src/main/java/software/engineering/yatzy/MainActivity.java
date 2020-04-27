@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.Navigation;
+
+import java.util.Objects;
 
 import software.engineering.yatzy.appManagement.AppManager;
 
@@ -16,7 +19,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AppManager.getInstance().startService(getApplicationContext());
+        // UNCOMMENT LATER:
+        // AppManager.getInstance().bindToService(getApplicationContext(), Navigation.findNavController(Objects.requireNonNull(this), R.id.nav_host_fragment));
     }
 
     @Override
@@ -38,14 +42,16 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Log.d(TAG, "MainActivity: In the onResume() event");
 
-        AppManager.getInstance().bindToService();
+        // UNCOMMENT LATER:
+        // AppManager.getInstance().appInFocus = true;
     }
 
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "MainActivity: In the onPause() event");
 
-        AppManager.getInstance().unBindFromService();
+        // UNCOMMENT LATER:
+        // AppManager.getInstance().appInFocus = false;
     }
 
     protected void onStop() {
@@ -57,7 +63,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(TAG, "MainActivity: In the onDestroy() event");
 
-        AppManager.getInstance().killService();
+        // UNCOMMENT LATER:
+        // AppManager.getInstance().stopServiceThreads();
+        // AppManager.getInstance().unbindFromService();
     }
 
 }
