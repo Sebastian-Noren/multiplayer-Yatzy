@@ -16,8 +16,10 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.appManagement.AppManager;
+import software.engineering.yatzy.appManagement.Updatable;
 
-public class LoginFragment extends Fragment {
+public class LoginFragment extends Fragment implements Updatable {
 
     private String tag = "Info";
     private Button loginBtn;
@@ -37,6 +39,22 @@ public class LoginFragment extends Fragment {
         });
 
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Report currently displayed fragment to AppManager
+        AppManager.getInstance().currentFragment = this;
+    }
+
+    @Override
+    public void update(int protocolIndex, int specifier, String exceptionMessage) {
+        // If exception message (ex invalid login attempt or unable to connect to Server)
+        if(protocolIndex == 40) {
+            // Display exceptionMessage
+        }
+
     }
 
     @Override
@@ -100,4 +118,5 @@ public class LoginFragment extends Fragment {
         super.onDetach();
         Log.d(tag, "LoginFragment: In the onDetach() event");
     }
+
 }
