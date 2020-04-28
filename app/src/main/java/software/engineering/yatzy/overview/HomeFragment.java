@@ -1,6 +1,8 @@
 package software.engineering.yatzy.overview;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +24,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.overview.create_game.CreateGameDialog;
 
 public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput {
 
@@ -34,8 +37,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     private RecyclerView recyclerView;
     private OvershootInterpolator interpolator = new OvershootInterpolator();
     private GameOverviewAdapter gameAdapter;
-    private CreateGameDialog createGameDialog;
-    ArrayList<Room> gameSessionLists = new ArrayList<>();
+    private ArrayList<Room> gameSessionLists = new ArrayList<>();
     private int roomID = 0;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -115,7 +117,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     }
 
     private void openCreateGameSessionDialog() {
-        createGameDialog = new CreateGameDialog();
+        CreateGameDialog createGameDialog = new CreateGameDialog();
         createGameDialog.getDialog();
         createGameDialog.setTargetFragment(this, 1);
         createGameDialog.show(Objects.requireNonNull(getFragmentManager()), "dialog");
@@ -183,11 +185,12 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         Log.d(TAG, "HomeFragment: In the onDetach() event");
     }
 
-    //TODO Create new values when hosting a game
+
     @Override
-    public void saveComplete(String input, double value, String notes) {
-        //String title, String description, String status, int roomID)
-        gameSessionLists.add(new Room(input, notes,"Ongoing",++roomID));
+    public void saveComplete(String gameName, String host, ArrayList<String> listOfInvitedPlayers ) {
+        //TODO send data to server
+        Log.i(TAG, String.format("saveComplete: %s Host: %s list of players: %s", gameName, host, listOfInvitedPlayers.toString()));
+        gameSessionLists.add(new Room(gameName, "notes","Ongoing",++roomID));
         gameAdapter.notifyDataSetChanged();
     }
 }
