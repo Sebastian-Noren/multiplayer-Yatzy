@@ -3,6 +3,7 @@ package software.engineering.yatzy.game;
 import java.util.Arrays;
 
 public class Player {
+    private PlayerParticipation participation;
     private String name;
     private int[] scoreBoard;
 
@@ -10,8 +11,9 @@ public class Player {
         this.name = name;
     }
 
-    public Player(String name, int[] scoreBoard) {
+    public Player(String name, PlayerParticipation participation, int[] scoreBoard) {
         this.name = name;
+        this.participation = participation;
         this.scoreBoard = scoreBoard;
     }
 
