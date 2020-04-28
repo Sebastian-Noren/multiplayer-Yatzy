@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 
 import java.util.Objects;
 
@@ -22,12 +23,15 @@ public class LoginFragment extends Fragment {
     private String tag = "Info";
     private Button loginBtn;
     private NavController navController;
+    EditText editText_nameID, editTextPassword;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
         Log.d(tag, "In the LoginFragment");
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
         loginBtn = view.findViewById(R.id.loginButton);
+        editText_nameID = view.findViewById(R.id.name_id_edittext);
+        editTextPassword = view.findViewById(R.id.password_edittext);
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
