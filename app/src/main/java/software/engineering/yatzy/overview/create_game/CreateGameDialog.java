@@ -6,9 +6,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -24,13 +27,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.Utilities;
+import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.game.Player;
 import software.engineering.yatzy.testing.localDatabase.DataBaseAccess;
 
 
 public class CreateGameDialog extends AppCompatDialogFragment {
     private String tag = "Info";
-    private TextView inputGameName, listCounterText;
+    private String host;
+    private TextView hostName, listCounterText;
+    private EditText inputGameName;
     private InviteSearchAdapter inviteSearchAdapter;
     private ItemTouchHelper.SimpleCallback itemTouchHelperCallback;
     private AutoCompleteTextView searchPlayer;
@@ -38,12 +44,8 @@ public class CreateGameDialog extends AppCompatDialogFragment {
     private ImageButton saveBtn, cancelBtn;
     private short counter = 0;
 
-    //TODO 2. Try to hide the F*** keyboard
-    //TODO 3. More graphic styling
-    //TODO 4. Send correct data down to HomeFragment, Work with interface
     //TODO 5. Make so string input are safe
-    //TODO Delete later on when database is online
-    private DataBaseAccess dataBaseAccess;
+    private DataBaseAccess dataBaseAccess; // Delete when database is online
 
     public interface OnSelectedInput {
         void saveComplete(String gameName, String host, ArrayList<String> invitedPlayers);
@@ -79,6 +81,12 @@ public class CreateGameDialog extends AppCompatDialogFragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String playerName = parent.getItemAtPosition(position).toString();
                 Log.e(tag, "onItemClick:" + playerName );
+                View v = getDialog().getCurrentFocus();
+                if (v != null) {
+                    InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+                }
                 searchPlayer.setText("");
                 startSearch(playerName.toLowerCase());
                 counter++;
@@ -101,15 +109,12 @@ public class CreateGameDialog extends AppCompatDialogFragment {
             public void onClick(View v) {
                 Log.i(tag, "Save clicked");
                 String gameName = inputGameName.getText().toString().trim();
-                getDialog().dismiss();
-                Utilities.hideSoftKeyboard(getActivity());
-                //TODO change value that will be sent
-                String host = "PlayerHost";
-
                 ArrayList<String> listPlayers = new ArrayList<>();
                 for (Player players: invitedPlayerList) {
                     listPlayers.add(players.getName());
                 }
+                Utilities.hideSoftKeyboard(getActivity());
+                getDialog().dismiss();
                 onSelectedInput.saveComplete(gameName, host, listPlayers);
             }
         });
@@ -160,6 +165,11 @@ public class CreateGameDialog extends AppCompatDialogFragment {
         saveBtn = view.findViewById(R.id.account_saveBtn);
         cancelBtn = view.findViewById(R.id.account_cancelBtn);
         inputGameName = view.findViewById(R.id.input_new_game);
+        hostName = view.findViewById(R.id.new_game_host);
+        //TODO unmark when account is up remove local String host
+       //host = AppManager.getInstance().loggedInUser.getNameID();
+        String host = "PlayerHost";
+        hostName.setText(host);
         searchPlayer = view.findViewById(R.id.autoCompleteTextView);
         RecyclerView recViewInvitePlayers = view.findViewById(R.id.create_game_invite_recyclerlist);
         recViewInvitePlayers.setLayoutManager(new LinearLayoutManager(getContext()));

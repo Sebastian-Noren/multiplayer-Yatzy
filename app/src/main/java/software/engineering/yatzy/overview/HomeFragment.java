@@ -68,7 +68,11 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         gameAdapter.setOnItemClickListener(new GameOverviewAdapter.ItemClickListener() {
             @Override
             public void onItemClickListener(int position) {
-                navController.navigate(R.id.navigation_game);
+                // Sends which game index the player chose
+                Bundle bundle = new Bundle();
+                Log.i(TAG,"Game index: " + position);
+                bundle.putInt("gameToPlay",position);
+                navController.navigate(R.id.navigation_game,bundle);
             }
         });
 
