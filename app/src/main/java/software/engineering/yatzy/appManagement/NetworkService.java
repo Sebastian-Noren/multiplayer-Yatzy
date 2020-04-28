@@ -39,6 +39,7 @@ public class NetworkService extends Service {
     private Thread inputThread;
     public volatile boolean inputThreadRunning; // Variable to be checked inside thread loop.
     public volatile boolean connectedToCloud;
+    public volatile boolean serviceShutDown;
     public BlockingQueue<String> requestsToServer;
 
     // Gets called when the service is first started
@@ -49,32 +50,18 @@ public class NetworkService extends Service {
         inputThread = null;
         inputThreadRunning = false;
         connectedToCloud = false;
+        serviceShutDown = false;
 
         requestsToServer = new ArrayBlockingQueue<>(10);
     }
 
-    private int ccc = 0;
     // When a client binds to a service; a Binder object will be returned (for bound service),
     // to facilitate the communication: client -> service
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind " + ccc++);
+        Log.d(TAG, "onBind");
         return binder;
-    }
-
-    // REMOVE LATER
-    @Override
-    public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "onUnbind " + ccc++);
-        return super.onUnbind(intent);
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "destroy service " + ccc++);
-        serviceShutDown = true;
-        super.onDestroy();
     }
 
     /*
@@ -89,12 +76,10 @@ public class NetworkService extends Service {
         // + stop threads running
         Log.d(TAG, "Service dead");
         stopSelf();
-
     }
 
     // =================================== TEST ====================================================
 
-    volatile boolean serviceShutDown = false;
     public void test(final Handler handler) {
         new Thread(new Runnable() {
             int count = 0;

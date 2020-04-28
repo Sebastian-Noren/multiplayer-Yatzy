@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // UNCOMMENT LATER:
-        // AppManager.getInstance().bindToService(getApplicationContext(), Navigation.findNavController(Objects.requireNonNull(this), R.id.nav_host_fragment));
+        AppManager.getInstance().bindToService(getApplicationContext(), Navigation.findNavController(Objects.requireNonNull(this), R.id.nav_host_fragment));
     }
 
     @Override
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "MainActivity: In the onResume() event");
 
         // UNCOMMENT LATER:
-        // AppManager.getInstance().appInFocus = true;
+        AppManager.getInstance().appInFocus = true;
     }
 
     protected void onPause() {
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "MainActivity: In the onPause() event");
 
         // UNCOMMENT LATER:
-        // AppManager.getInstance().appInFocus = false;
+        AppManager.getInstance().appInFocus = false;
     }
 
     protected void onStop() {
@@ -63,9 +63,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(TAG, "MainActivity: In the onDestroy() event");
 
-        // UNCOMMENT LATER:
-        // AppManager.getInstance().stopServiceThreads();
-        // AppManager.getInstance().unbindFromService();
+        // UNCOMMENT LATER
+        AppManager.getInstance().unbindFromService();
     }
 
 }
