@@ -102,7 +102,6 @@ public class AppManager {
             stopServiceThreads();
             Log.d(TAG, "unbindFromService " + "AppManager: " + this.toString());
             applicationContext.unbindService(serviceConnection);
-            Log.d(TAG, "unbindFromService ");
             isBound = false;
         }
         appInFocus = false;
@@ -186,8 +185,11 @@ public class AppManager {
                 case "5":
                     reconnectionResult(commands);
                     break;
+                case "15":
+                    receiveGamePENDING(commands);
+                    break;
                 case "16":
-                    receiveOneGame(commands);
+                    receiveGame(commands);
                     break;
                 case "18":
                     rollResult(commands);
@@ -225,6 +227,7 @@ public class AppManager {
         }
     }
 
+    // #2
     private void loginResult(String[] commands) throws Exception{
         if (commands[1].equals("ok")) {
             // Initiate loggedInUser
@@ -245,6 +248,7 @@ public class AppManager {
         }
     }
 
+    // #5
     private void reconnectionResult(String[] commands) throws Exception {
         if (commands[1].equals("ok")) {
             loggedInUser.gamesPlayed = Integer.parseInt(commands[3]);
@@ -260,7 +264,41 @@ public class AppManager {
         }
     }
 
-    private void receiveOneGame(String[] commands) throws Exception {
+    // #15
+    // A not started game. For those that are not host, this is the invitation
+    private void receiveGamePENDING(String[] commands) throws Exception {
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        String gameName = commands[++count];
+        GameState gameState = GameState.valueOf(commands[++count]);
+        // Assign an initial scoreboard:
+        int[] initialScoreboard = new int[18];
+        Arrays.fill(initialScoreboard, -1);
+        // Players:
+        ArrayList<Player> playerList = new ArrayList<>();
+        while (true) {
+            String nameID = commands[++count];
+            PlayerParticipation participation = PlayerParticipation.valueOf(commands[++count]);
+            playerList.add(new Player(nameID, participation, initialScoreboard));
+            if (commands[++count].equals("null")) {
+                break;
+            }
+            count++;
+        }
+        TurnState initialTurnState = new TurnState();
+        // Create new game and add it to list of games:
+        Game newGame = new Game(gameID, gameName, gameState, initialTurnState, playerList, "notDefined", 0);
+        gameList.add(newGame);
+        if(appInFocus) {
+            currentFragment.update(15, gameID, null);
+        } else {
+            // Notification if not host: hostName has invited you to a game
+        }
+    }
+
+    // #16
+    // ONGOING or ENDED game (upon app login)
+    private void receiveGame(String[] commands) throws Exception {
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         String gameName = commands[++count];
@@ -291,8 +329,6 @@ public class AppManager {
         GameState gameState = GameState.valueOf(commands[++count]);
         String winnerName = commands[++count];
         int winnerScore = Integer.parseInt(commands[++count]);
-        // Used to know if a Notification should be published:
-        boolean isLoginRequest = commands[++count].equals("login");
         // Create Game
         Game receivedGame = new Game(gameID, gameName, gameState, turnState, playerList, winnerName, winnerScore);
         // Add to global list
@@ -301,38 +337,145 @@ public class AppManager {
         if(appInFocus) {
             currentFragment.update(16, gameID, null);
         }
+
     }
 
+    // #18
     private void rollResult(String[] commands) throws Exception {
-        // Implement
-    }
-
-    private void turnResult(String[] commands) throws Exception {
-        // Implement
-    }
-
-    private void gameStart(String[] commands) throws Exception {
-        // Implement
-    }
-
-    private void gameEnd(String[] commands) throws Exception {
-        // Implement
-    }
-
-    private void updateIndividualHighScore(String highScore) throws Exception {
-        // Implement
-    }
-
-    private void updateInvitationReply(String[] commands) throws NumberFormatException {
-        // Implement
-    }
-
-    private void exceptionFromCloud(String exceptionMessage) {
-        if (appInFocus) {
-            currentFragment.update(40, -1, exceptionMessage);
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        // turnState
+        int rollTurn = Integer.parseInt(commands[++count]);
+        int rollNr = Integer.parseInt(commands[++count]);
+        int[] diceValues = new int[5];
+        for(int i = 0 ; i < diceValues.length ; i++) {
+            diceValues[i] = Integer.parseInt(commands[++count]);
+        }
+        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.setTurnState(turnState);
+                break;
+            }
+        }
+        // Notify current fragment
+        if(appInFocus) {
+            currentFragment.update(18, gameID, null);
         }
     }
 
+    // #20
+    private void turnResult(String[] commands) throws Exception {
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        // turnState
+        int rollTurn = Integer.parseInt(commands[++count]); // Next player's turn now
+        int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
+        int[] diceValues = new int[5];
+        for(int i = 0 ; i < diceValues.length ; i++) {
+            diceValues[i] = Integer.parseInt(commands[++count]);
+        }
+        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        // Updates in previous player's scoreboard
+        String nameOfPreviousPlayer = commands[++count];
+        int scoreboardIndex = Integer.parseInt(commands[++count]);
+        int scoreboardValue = Integer.parseInt(commands[++count]);
+        // Commit updates
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.setTurnState(turnState);
+                game.updateScoreBoard(nameOfPreviousPlayer, scoreboardIndex, scoreboardValue);
+                if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                    // Notification: Your turn in "GameName"
+                }
+            }
+        }
+        if(appInFocus) {
+            currentFragment.update(20, gameID, null);
+        }
+    }
+
+    // #21
+    private void gameStart(String[] commands) throws Exception {
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        GameState gameState = GameState.valueOf(commands[++count]);
+        // turnState
+        int rollTurn = Integer.parseInt(commands[++count]); // Next player's turn now
+        int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
+        int[] diceValues = new int[5];
+        for(int i = 0 ; i < diceValues.length ; i++) {
+            diceValues[i] = Integer.parseInt(commands[++count]);
+        }
+        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        // Players: Now reduced only to host + those that have accepted
+        ArrayList<Player> playerList = new ArrayList<>();
+        while (true) {
+            String nameID = commands[++count];
+            PlayerParticipation participation = PlayerParticipation.valueOf(commands[++count]);
+            int[] scoreboard = new int[18];
+            for(int i = 0 ; i < scoreboard.length ; i++ ) {
+                scoreboard[i] = Integer.parseInt(commands[++count]);
+            }
+            playerList.add(new Player(nameID, participation, scoreboard)); // Initiate
+            if (commands[++count].equals("null")) {
+                break;
+            }
+            count++;
+        }
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.setState(gameState);
+                game.setTurnState(turnState);
+                game.updatePlayerList(playerList);
+                if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                    // Notification: Your turn in "GameName"
+                }
+            }
+        }
+        if(appInFocus) {
+            currentFragment.update(21, gameID, null);
+        }
+    }
+
+    // #22
+    private void gameEnd(String[] commands) throws Exception {
+        // Server knows when all 15 rounds are over
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        GameState gameState = GameState.valueOf(commands[++count]);
+        // Updates in previous player's scoreboard
+        String nameOfLastPlayer = commands[++count];
+        int scoreboardIndex = Integer.parseInt(commands[++count]);
+        int scoreboardValue = Integer.parseInt(commands[++count]);
+        // Winner data
+        String winnerName = commands[++count];
+        int winnerScore = Integer.parseInt(commands[++count]);
+        // Commit updates
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.setState(gameState);
+                game.updateScoreBoard(nameOfLastPlayer, scoreboardIndex, scoreboardValue);
+                game.setWinnerName(winnerName);
+                game.setWinnerScore(winnerScore);
+            }
+        }
+        if(appInFocus) {
+            currentFragment.update(22, gameID, null);
+        } else {
+            // Notification: winnerName won game gameName (XXXp)
+        }
+    }
+
+    // #23
+    private void updateIndividualHighScore(String highScore) throws Exception {
+        loggedInUser.highScore = Integer.parseInt(highScore);
+        if(appInFocus) {
+            currentFragment.update(23, -1, null);
+        }
+    }
+
+    // #24
     private void updateUniversalHighScoreList(String[] top3) throws NumberFormatException {
         universalHighScores.clear();
         universalHighScores.add(new HighScoreRecord(top3[1], Integer.parseInt(top3[2]))); // #1
@@ -343,6 +486,19 @@ public class AppManager {
         }
     }
 
+    // #34
+    private void updateInvitationReply(String[] commands) throws NumberFormatException {
+        // Implement
+    }
+
+    // #40
+    private void exceptionFromCloud(String exceptionMessage) {
+        if (appInFocus) {
+            currentFragment.update(40, -1, exceptionMessage);
+        }
+    }
+
+    // #41
     private void lostCloudConnection() {
         //writeToast("No cloud connection");
         // getSupportActionBar().hide();
@@ -415,7 +571,7 @@ public class AppManager {
 
     // =========================== WRITE TO CACHE ======================================
 
-    public void writeUserToCache() {
+    private void writeUserToCache() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -432,7 +588,7 @@ public class AppManager {
     // =========================== READ FROM CACHE ======================================
 
     //Reconnection with sessionKey
-    private void readUserDataFromCache() {
+    public void readUserDataFromCache() {
         //final Handler setupHandler = new Handler(Looper.getMainLooper());
 
         new Thread(new Runnable() {

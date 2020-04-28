@@ -15,9 +15,15 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.appManagement.Updatable;
 
-public class SetupFragment extends Fragment {
+public class SetupFragment extends Fragment implements Updatable{
+
+    /**
+     * GUI: This fragment does not have user interaction or any readable content
+     * This fragment could just have a big spinning progressbar (denoting a loading state)
+     */
 
     private String tag = "Info";
     private NavController navController;
@@ -26,6 +32,7 @@ public class SetupFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_setup, container, false);
         Log.d(tag, "In the SetupFragment");
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
+        AppManager.getInstance().currentFragment = this;
 
         //Fake loading to server
        // fakeServerConection();
@@ -48,6 +55,15 @@ public class SetupFragment extends Fragment {
             }
         });
         th.start();
+    }
+
+    public void connectToCloudWithSessionKey() {
+        AppManager.getInstance().readUserDataFromCache();
+    }
+
+    @Override
+    public void update(int protocolIndex, int specifier, String exceptionMessage) {
+        // Keep empty here
     }
 
     @Override
@@ -111,4 +127,6 @@ public class SetupFragment extends Fragment {
         super.onDetach();
         Log.d(tag, "SetupFragment: In the onDetach() event");
     }
+
+
 }
