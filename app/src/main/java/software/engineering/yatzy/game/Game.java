@@ -10,6 +10,7 @@ public class Game {
     private ArrayList<Player> playerList;
     private String winnerName;
     private int winnerScore;
+    private int playerListSize;
 
 
     public Game(int gameID, String gameName, GameState state, TurnState turnState, ArrayList<Player> playerList, String winnerName, int winnerScore) {
@@ -87,6 +88,10 @@ public class Game {
 
     public Player getPlayer(int index) {
         return playerList.get(index);
+    }
+
+    public int getPlayerListSize(){
+        return playerList.size();
     }
 
 }
