@@ -20,6 +20,17 @@ import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.appManagement.Updatable;
 
 public class LoginFragment extends Fragment implements Updatable {
+    /**
+     * Login GUI should contain:
+     * - User name (nameID): text field
+     * - Password: password text field
+     * - Exception label (hidden/empty until update() receives an Exception message. Maybe: Only dsiplay for 4-5 sec. Red color font?)
+     * - Login button (call to method: login)
+     *
+     * - Create account button (to implement later). Maybe direct to a pop-up
+     *
+     * Text field & password should not accept colons ":" or be empty: string.trim().isEmpty()
+     */
 
     private String tag = "Info";
     private Button loginBtn;
@@ -30,6 +41,8 @@ public class LoginFragment extends Fragment implements Updatable {
         Log.d(tag, "In the LoginFragment");
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
         loginBtn = view.findViewById(R.id.loginButton);
+        // Report currently displayed fragment to AppManager. Maybe from onViewCreated?
+        AppManager.getInstance().currentFragment = this;
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -37,25 +50,25 @@ public class LoginFragment extends Fragment implements Updatable {
                 navController.navigate(R.id.navigation_main);
             }
         });
-
         return view;
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        // Report currently displayed fragment to AppManager
-        AppManager.getInstance().currentFragment = this;
     }
 
     @Override
     public void update(int protocolIndex, int specifier, String exceptionMessage) {
         // If exception message (ex invalid login attempt or unable to connect to Server)
         if(protocolIndex == 40) {
-            // Display exceptionMessage
+            // Display exceptionMessage in label
         }
-
     }
+
+    public void login() {
+        String nameID = ""; // Get from text field
+        String password = ""; // Get from password text field
+        String loginRequest = "1:" + nameID + ":" + password;
+        AppManager.getInstance().establishCloudServerConnection(loginRequest);
+    }
+
+    // CAN THE BELOW LIFECYCLE METHODS BE REMOVED?
 
     @Override
     public void onDestroyView() {
