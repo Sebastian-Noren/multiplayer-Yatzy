@@ -87,9 +87,9 @@ public class AppManager {
 
     //MainActivity: onCreate
     public void bindToService(Context context, NavController navController) {
+        Log.i(TAG, "App requests binding to Android service");
         this.navController = navController;
         applicationContext = context;
-        Log.d(TAG, "bindToService " + "AppManager: " + this.toString());
         Intent intent = new Intent(applicationContext, NetworkService.class);
         applicationContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         // bindService: A call to the the service's onBind() method
@@ -100,7 +100,7 @@ public class AppManager {
     public void unbindFromService() {
         if (isBound) {
             stopServiceThreads();
-            Log.d(TAG, "unbindFromService " + "AppManager: " + this.toString());
+            Log.i(TAG, "App unbound from Android service");
             applicationContext.unbindService(serviceConnection);
             isBound = false;
         }
@@ -130,10 +130,10 @@ public class AppManager {
             //Indicate that a connection has been successfully established
             isBound = true;
 
-            Log.d(TAG, "onServiceConnected " + isBound + " COUNT " + ccc++);
+            Log.i(TAG, "App bound to Android service");
 
             if (firstBind) {
-                networkService.test(handler);
+                //networkService.test(handler);
                 firstBind = false;
             }
         }
@@ -141,7 +141,7 @@ public class AppManager {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             // Will trigger on service connection exception
-            Log.d(TAG, "onServiceDisconnected " + isBound + " COUNT " + ccc++);
+            Log.i(TAG, "onServiceDisconnected " + isBound + " COUNT " + ccc++);
             isBound = false;
         }
     };
@@ -151,8 +151,8 @@ public class AppManager {
 
     public void update() {
         if (isBound && appInFocus) {
-            Utilities.toastMessage(applicationContext, "Android Update " + testInt);
-            // Log.d(TAG, "Android Update " + testInt);
+            //Utilities.toastMessage(applicationContext, "Android Update " + testInt);
+            // Log.i(TAG, "Android Update " + testInt);
         }
     }
 
@@ -229,6 +229,7 @@ public class AppManager {
 
     // #2
     private void loginResult(String[] commands) throws Exception{
+        Log.i(TAG, "From server: Result of manual login");
         if (commands[1].equals("ok")) {
             // Initiate loggedInUser
             String nameID = commands[3];
@@ -250,6 +251,7 @@ public class AppManager {
 
     // #5
     private void reconnectionResult(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Result of automatic login with session key");
         if (commands[1].equals("ok")) {
             loggedInUser.gamesPlayed = Integer.parseInt(commands[3]);
             loggedInUser.highScore = Integer.parseInt(commands[4]);
@@ -267,6 +269,7 @@ public class AppManager {
     // #15
     // A not started game. For those that are not host, this is the invitation
     private void receiveGamePENDING(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Newly created game received");
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         String gameName = commands[++count];
@@ -299,6 +302,7 @@ public class AppManager {
     // #16
     // ONGOING or ENDED game (upon app login)
     private void receiveGame(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Game received");
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         String gameName = commands[++count];
@@ -342,6 +346,7 @@ public class AppManager {
 
     // #18
     private void rollResult(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Result of roll");
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         // turnState
@@ -366,6 +371,7 @@ public class AppManager {
 
     // #20
     private void turnResult(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Result of placing point i scoreboard");
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         // turnState
@@ -397,6 +403,7 @@ public class AppManager {
 
     // #21
     private void gameStart(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Initiates a game start");
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         GameState gameState = GameState.valueOf(commands[++count]);
@@ -440,6 +447,7 @@ public class AppManager {
 
     // #22
     private void gameEnd(String[] commands) throws Exception {
+        Log.i(TAG, "From server: A game has ended");
         // Server knows when all 15 rounds are over
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
@@ -469,6 +477,7 @@ public class AppManager {
 
     // #23
     private void updateIndividualHighScore(String highScore) throws Exception {
+        Log.i(TAG, "From server: Update of this player's high score");
         loggedInUser.highScore = Integer.parseInt(highScore);
         if(appInFocus) {
             currentFragment.update(23, -1, null);
@@ -477,6 +486,7 @@ public class AppManager {
 
     // #24
     private void updateUniversalHighScoreList(String[] top3) throws NumberFormatException {
+        Log.i(TAG, "From server: Update of universal high score list");
         universalHighScores.clear();
         universalHighScores.add(new HighScoreRecord(top3[1], Integer.parseInt(top3[2]))); // #1
         universalHighScores.add(new HighScoreRecord(top3[3], Integer.parseInt(top3[4]))); // #2
@@ -488,11 +498,13 @@ public class AppManager {
 
     // #34
     private void updateInvitationReply(String[] commands) throws NumberFormatException {
+        Log.i(TAG, "From server: A player has replied to a game invitation");
         // Implement
     }
 
     // #40
     private void exceptionFromCloud(String exceptionMessage) {
+        Log.i(TAG, "From server: Exception message");
         if (appInFocus) {
             currentFragment.update(40, -1, exceptionMessage);
         }
@@ -500,6 +512,7 @@ public class AppManager {
 
     // #41
     private void lostCloudConnection() {
+        Log.i(TAG, "Lost server connection");
         //writeToast("No cloud connection");
         // getSupportActionBar().hide();
         if (loginAttemptWithSessionKey) {
@@ -524,7 +537,7 @@ public class AppManager {
                     networkService.socketException = false;
                 }
                 for (attempt = 0; attempt < 10; attempt++) {
-                    Log.d(TAG, "Establish connection " + Thread.currentThread().getName());
+                    Log.i(TAG, "Establish server connection " + Thread.currentThread().getName());
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
@@ -543,7 +556,7 @@ public class AppManager {
                                     connected = networkService.inputThreadRunning;
                                     //connected = networkService.connectedToCloud;
                                     if (connected) {
-                                        Log.d(TAG, "CONNECTED");
+                                        Log.i(TAG, "CONNECTED to server");
                                         try {
                                             // Add log in request to be sent to cloud server.
                                             networkService.requestsToServer.put(loginRequest);
@@ -595,7 +608,7 @@ public class AppManager {
             @Override
             public void run() {
 
-                Log.d(TAG, "Read user from file   " + Thread.currentThread().getName());
+                Log.i(TAG, "Read user from file " + Thread.currentThread().getName());
 
                 boolean successfulCacheRead = false;
                 String message = "";
@@ -652,7 +665,7 @@ public class AppManager {
             if (appInFocus) {
                 navController.navigate(R.id.navigation_Login);
             }
-            Log.d(TAG, message);
+            Log.i(TAG, message);
         }
     }
 
