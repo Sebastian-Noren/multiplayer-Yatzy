@@ -11,6 +11,13 @@ public class TurnState {
         this.diceValues = diceValues;
     }
 
+    public TurnState() {
+        // Used to assign a nonsense scoreboard before game start
+        currentPlayer = -1;
+        rollTurn = -1;
+        diceValues = new int[]{-1};
+    }
+
     public int getCurrentPlayer() {
         return currentPlayer;
     }

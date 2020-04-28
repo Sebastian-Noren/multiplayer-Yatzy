@@ -70,7 +70,23 @@ public class Game {
         this.winnerScore = winnerScore;
     }
 
+    // Add score in a single scoreboard cell
+    public void updateScoreBoard(String playerName, int index, int value) {
+        for(Player player : playerList) {
+            if(player.getName().equals(playerName)) {
+                player.setScoreBoardElement(index, value);
+            }
+        }
+    }
+
+    // Called when all player's has responded and those that have declined has been removed
+    public void updatePlayerList(ArrayList<Player> updatedPlayerList) {
+        //playerList.clear();
+        playerList = updatedPlayerList;
+    }
+
     public Player getPlayer(int index) {
         return playerList.get(index);
     }
+
 }
