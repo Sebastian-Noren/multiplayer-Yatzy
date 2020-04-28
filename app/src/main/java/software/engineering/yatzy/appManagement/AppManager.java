@@ -87,9 +87,9 @@ public class AppManager {
 
     //MainActivity: onCreate
     public void bindToService(Context context, NavController navController) {
+        Log.i(TAG, "App requests binding to Android service");
         this.navController = navController;
         applicationContext = context;
-        Log.d(TAG, "bindToService " + "AppManager: " + this.toString());
         Intent intent = new Intent(applicationContext, NetworkService.class);
         applicationContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         // bindService: A call to the the service's onBind() method
@@ -100,9 +100,8 @@ public class AppManager {
     public void unbindFromService() {
         if (isBound) {
             stopServiceThreads();
-            Log.d(TAG, "unbindFromService " + "AppManager: " + this.toString());
+            Log.i(TAG, "App unbound from Android service");
             applicationContext.unbindService(serviceConnection);
-            Log.d(TAG, "unbindFromService ");
             isBound = false;
         }
         appInFocus = false;
@@ -131,10 +130,10 @@ public class AppManager {
             //Indicate that a connection has been successfully established
             isBound = true;
 
-            Log.d(TAG, "onServiceConnected " + isBound + " COUNT " + ccc++);
+            Log.i(TAG, "App bound to Android service");
 
             if (firstBind) {
-                networkService.test(handler);
+                //networkService.test(handler);
                 firstBind = false;
             }
         }
@@ -142,7 +141,7 @@ public class AppManager {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             // Will trigger on service connection exception
-            Log.d(TAG, "onServiceDisconnected " + isBound + " COUNT " + ccc++);
+            Log.i(TAG, "onServiceDisconnected " + isBound + " COUNT " + ccc++);
             isBound = false;
         }
     };
@@ -152,8 +151,8 @@ public class AppManager {
 
     public void update() {
         if (isBound && appInFocus) {
-            Utilities.toastMessage(applicationContext, "Android Update " + testInt);
-            // Log.d(TAG, "Android Update " + testInt);
+            //Utilities.toastMessage(applicationContext, "Android Update " + testInt);
+            // Log.i(TAG, "Android Update " + testInt);
         }
     }
 
@@ -186,8 +185,11 @@ public class AppManager {
                 case "5":
                     reconnectionResult(commands);
                     break;
+                case "15":
+                    receiveGamePENDING(commands);
+                    break;
                 case "16":
-                    receiveOneGame(commands);
+                    receiveGame(commands);
                     break;
                 case "18":
                     rollResult(commands);
@@ -225,7 +227,9 @@ public class AppManager {
         }
     }
 
+    // #2
     private void loginResult(String[] commands) throws Exception{
+        Log.i(TAG, "From server: Result of manual login");
         if (commands[1].equals("ok")) {
             // Initiate loggedInUser
             String nameID = commands[3];
@@ -245,7 +249,9 @@ public class AppManager {
         }
     }
 
+    // #5
     private void reconnectionResult(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Result of automatic login with session key");
         if (commands[1].equals("ok")) {
             loggedInUser.gamesPlayed = Integer.parseInt(commands[3]);
             loggedInUser.highScore = Integer.parseInt(commands[4]);
@@ -260,7 +266,43 @@ public class AppManager {
         }
     }
 
-    private void receiveOneGame(String[] commands) throws Exception {
+    // #15
+    // A not started game. For those that are not host, this is the invitation
+    private void receiveGamePENDING(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Newly created game received");
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        String gameName = commands[++count];
+        GameState gameState = GameState.valueOf(commands[++count]);
+        // Assign an initial scoreboard:
+        int[] initialScoreboard = new int[18];
+        Arrays.fill(initialScoreboard, -1);
+        // Players:
+        ArrayList<Player> playerList = new ArrayList<>();
+        while (true) {
+            String nameID = commands[++count];
+            PlayerParticipation participation = PlayerParticipation.valueOf(commands[++count]);
+            playerList.add(new Player(nameID, participation, initialScoreboard));
+            if (commands[++count].equals("null")) {
+                break;
+            }
+            count++;
+        }
+        TurnState initialTurnState = new TurnState();
+        // Create new game and add it to list of games:
+        Game newGame = new Game(gameID, gameName, gameState, initialTurnState, playerList, "notDefined", 0);
+        gameList.add(newGame);
+        if(appInFocus) {
+            currentFragment.update(15, gameID, null);
+        } else {
+            // Notification if not host: hostName has invited you to a game
+        }
+    }
+
+    // #16
+    // ONGOING or ENDED game (upon app login)
+    private void receiveGame(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Game received");
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         String gameName = commands[++count];
@@ -291,8 +333,6 @@ public class AppManager {
         GameState gameState = GameState.valueOf(commands[++count]);
         String winnerName = commands[++count];
         int winnerScore = Integer.parseInt(commands[++count]);
-        // Used to know if a Notification should be published:
-        boolean isLoginRequest = commands[++count].equals("login");
         // Create Game
         Game receivedGame = new Game(gameID, gameName, gameState, turnState, playerList, winnerName, winnerScore);
         // Add to global list
@@ -301,39 +341,152 @@ public class AppManager {
         if(appInFocus) {
             currentFragment.update(16, gameID, null);
         }
+
     }
 
+    // #18
     private void rollResult(String[] commands) throws Exception {
-        // Implement
-    }
-
-    private void turnResult(String[] commands) throws Exception {
-        // Implement
-    }
-
-    private void gameStart(String[] commands) throws Exception {
-        // Implement
-    }
-
-    private void gameEnd(String[] commands) throws Exception {
-        // Implement
-    }
-
-    private void updateIndividualHighScore(String highScore) throws Exception {
-        // Implement
-    }
-
-    private void updateInvitationReply(String[] commands) throws NumberFormatException {
-        // Implement
-    }
-
-    private void exceptionFromCloud(String exceptionMessage) {
-        if (appInFocus) {
-            currentFragment.update(40, -1, exceptionMessage);
+        Log.i(TAG, "From server: Result of roll");
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        // turnState
+        int rollTurn = Integer.parseInt(commands[++count]);
+        int rollNr = Integer.parseInt(commands[++count]);
+        int[] diceValues = new int[5];
+        for(int i = 0 ; i < diceValues.length ; i++) {
+            diceValues[i] = Integer.parseInt(commands[++count]);
+        }
+        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.setTurnState(turnState);
+                break;
+            }
+        }
+        // Notify current fragment
+        if(appInFocus) {
+            currentFragment.update(18, gameID, null);
         }
     }
 
+    // #20
+    private void turnResult(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Result of placing point i scoreboard");
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        // turnState
+        int rollTurn = Integer.parseInt(commands[++count]); // Next player's turn now
+        int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
+        int[] diceValues = new int[5];
+        for(int i = 0 ; i < diceValues.length ; i++) {
+            diceValues[i] = Integer.parseInt(commands[++count]);
+        }
+        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        // Updates in previous player's scoreboard
+        String nameOfPreviousPlayer = commands[++count];
+        int scoreboardIndex = Integer.parseInt(commands[++count]);
+        int scoreboardValue = Integer.parseInt(commands[++count]);
+        // Commit updates
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.setTurnState(turnState);
+                game.updateScoreBoard(nameOfPreviousPlayer, scoreboardIndex, scoreboardValue);
+                if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                    // Notification: Your turn in "GameName"
+                }
+            }
+        }
+        if(appInFocus) {
+            currentFragment.update(20, gameID, null);
+        }
+    }
+
+    // #21
+    private void gameStart(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Initiates a game start");
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        GameState gameState = GameState.valueOf(commands[++count]);
+        // turnState
+        int rollTurn = Integer.parseInt(commands[++count]); // Next player's turn now
+        int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
+        int[] diceValues = new int[5];
+        for(int i = 0 ; i < diceValues.length ; i++) {
+            diceValues[i] = Integer.parseInt(commands[++count]);
+        }
+        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        // Players: Now reduced only to host + those that have accepted
+        ArrayList<Player> playerList = new ArrayList<>();
+        while (true) {
+            String nameID = commands[++count];
+            PlayerParticipation participation = PlayerParticipation.valueOf(commands[++count]);
+            int[] scoreboard = new int[18];
+            for(int i = 0 ; i < scoreboard.length ; i++ ) {
+                scoreboard[i] = Integer.parseInt(commands[++count]);
+            }
+            playerList.add(new Player(nameID, participation, scoreboard)); // Initiate
+            if (commands[++count].equals("null")) {
+                break;
+            }
+            count++;
+        }
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.setState(gameState);
+                game.setTurnState(turnState);
+                game.updatePlayerList(playerList);
+                if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                    // Notification: Your turn in "GameName"
+                }
+            }
+        }
+        if(appInFocus) {
+            currentFragment.update(21, gameID, null);
+        }
+    }
+
+    // #22
+    private void gameEnd(String[] commands) throws Exception {
+        Log.i(TAG, "From server: A game has ended");
+        // Server knows when all 15 rounds are over
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        GameState gameState = GameState.valueOf(commands[++count]);
+        // Updates in previous player's scoreboard
+        String nameOfLastPlayer = commands[++count];
+        int scoreboardIndex = Integer.parseInt(commands[++count]);
+        int scoreboardValue = Integer.parseInt(commands[++count]);
+        // Winner data
+        String winnerName = commands[++count];
+        int winnerScore = Integer.parseInt(commands[++count]);
+        // Commit updates
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.setState(gameState);
+                game.updateScoreBoard(nameOfLastPlayer, scoreboardIndex, scoreboardValue);
+                game.setWinnerName(winnerName);
+                game.setWinnerScore(winnerScore);
+            }
+        }
+        if(appInFocus) {
+            currentFragment.update(22, gameID, null);
+        } else {
+            // Notification: winnerName won game gameName (XXXp)
+        }
+    }
+
+    // #23
+    private void updateIndividualHighScore(String highScore) throws Exception {
+        Log.i(TAG, "From server: Update of this player's high score");
+        loggedInUser.highScore = Integer.parseInt(highScore);
+        if(appInFocus) {
+            currentFragment.update(23, -1, null);
+        }
+    }
+
+    // #24
     private void updateUniversalHighScoreList(String[] top3) throws NumberFormatException {
+        Log.i(TAG, "From server: Update of universal high score list");
         universalHighScores.clear();
         universalHighScores.add(new HighScoreRecord(top3[1], Integer.parseInt(top3[2]))); // #1
         universalHighScores.add(new HighScoreRecord(top3[3], Integer.parseInt(top3[4]))); // #2
@@ -343,7 +496,23 @@ public class AppManager {
         }
     }
 
+    // #34
+    private void updateInvitationReply(String[] commands) throws NumberFormatException {
+        Log.i(TAG, "From server: A player has replied to a game invitation");
+        // Implement
+    }
+
+    // #40
+    private void exceptionFromCloud(String exceptionMessage) {
+        Log.i(TAG, "From server: Exception message");
+        if (appInFocus) {
+            currentFragment.update(40, -1, exceptionMessage);
+        }
+    }
+
+    // #41
     private void lostCloudConnection() {
+        Log.i(TAG, "Lost server connection");
         //writeToast("No cloud connection");
         // getSupportActionBar().hide();
         if (loginAttemptWithSessionKey) {
@@ -368,7 +537,7 @@ public class AppManager {
                     networkService.socketException = false;
                 }
                 for (attempt = 0; attempt < 10; attempt++) {
-                    Log.d(TAG, "Establish connection " + Thread.currentThread().getName());
+                    Log.i(TAG, "Establish server connection " + Thread.currentThread().getName());
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
@@ -387,7 +556,7 @@ public class AppManager {
                                     connected = networkService.inputThreadRunning;
                                     //connected = networkService.connectedToCloud;
                                     if (connected) {
-                                        Log.d(TAG, "CONNECTED");
+                                        Log.i(TAG, "CONNECTED to server");
                                         try {
                                             // Add log in request to be sent to cloud server.
                                             networkService.requestsToServer.put(loginRequest);
@@ -415,7 +584,7 @@ public class AppManager {
 
     // =========================== WRITE TO CACHE ======================================
 
-    public void writeUserToCache() {
+    private void writeUserToCache() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -432,14 +601,14 @@ public class AppManager {
     // =========================== READ FROM CACHE ======================================
 
     //Reconnection with sessionKey
-    private void readUserDataFromCache() {
+    public void readUserDataFromCache() {
         //final Handler setupHandler = new Handler(Looper.getMainLooper());
 
         new Thread(new Runnable() {
             @Override
             public void run() {
 
-                Log.d(TAG, "Read user from file   " + Thread.currentThread().getName());
+                Log.i(TAG, "Read user from file " + Thread.currentThread().getName());
 
                 boolean successfulCacheRead = false;
                 String message = "";
@@ -496,7 +665,7 @@ public class AppManager {
             if (appInFocus) {
                 navController.navigate(R.id.navigation_Login);
             }
-            Log.d(TAG, message);
+            Log.i(TAG, message);
         }
     }
 
