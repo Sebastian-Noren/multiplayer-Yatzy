@@ -53,9 +53,9 @@ public class AppManager {
 
     // Holds data of logged in user, or null if on one is logged in
     public LoggedInUser loggedInUser;
-    // List of active games for the client. MAKE THREAD SAFE
+    // List of active games for the client.
     public ArrayList<Game> myGames;
-    // Top 3 high score names and scores. MAKE THREAD SAFE
+    // Top 3 high score names and scores.
     public ArrayList<HighScoreRecord> universalHighScores;
 
     // ============================ SINGLETON =======================================
@@ -89,7 +89,6 @@ public class AppManager {
         applicationContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         // bindService: A call to the the service's onBind() method
         // BIND_AUTO_CREATE: The service will be created if it hasn't already been created
-
     }
 
     //MainActivity: onDestroy
@@ -103,7 +102,7 @@ public class AppManager {
         }
         appInFocus = false;
 
-        // networkService.stopConnectionToCloudServer(); Uncomment once implemented
+        // networkService.stopConnectionToCloudServer();
     }
 
     public void stopServiceThreads() {
