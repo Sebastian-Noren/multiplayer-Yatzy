@@ -383,14 +383,14 @@ public class AppManager {
         }
         TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
         // Updates in previous player's scoreboard
-        String nameOfPreviousPlayer = commands[++count];
+        int indexOfPreviousPlayer = Integer.parseInt(commands[++count]);
         int scoreboardIndex = Integer.parseInt(commands[++count]);
         int scoreboardValue = Integer.parseInt(commands[++count]);
         // Commit updates
         for(Game game : gameList) {
             if(game.getGameID() == gameID) {
                 game.setTurnState(turnState);
-                game.updateScoreBoard(nameOfPreviousPlayer, scoreboardIndex, scoreboardValue);
+                game.updateScoreBoard(indexOfPreviousPlayer, scoreboardIndex, scoreboardValue);
                 if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
@@ -408,7 +408,7 @@ public class AppManager {
         int gameID = Integer.parseInt(commands[++count]);
         GameState gameState = GameState.valueOf(commands[++count]);
         // turnState
-        int rollTurn = Integer.parseInt(commands[++count]); // Next player's turn now
+        int rollTurn = Integer.parseInt(commands[++count]); // First player's turn now
         int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
         int[] diceValues = new int[5];
         for(int i = 0 ; i < diceValues.length ; i++) {
@@ -420,11 +420,10 @@ public class AppManager {
         while (true) {
             String nameID = commands[++count];
             PlayerParticipation participation = PlayerParticipation.valueOf(commands[++count]);
-            int[] scoreboard = new int[18];
-            for(int i = 0 ; i < scoreboard.length ; i++ ) {
-                scoreboard[i] = Integer.parseInt(commands[++count]);
-            }
-            playerList.add(new Player(nameID, participation, scoreboard)); // Initiate
+            // Assign an initial scoreboard:
+            int[] initialScoreboard = new int[18];
+            Arrays.fill(initialScoreboard, -1);
+            playerList.add(new Player(nameID, participation, initialScoreboard));
             if (commands[++count].equals("null")) {
                 break;
             }
@@ -453,7 +452,7 @@ public class AppManager {
         int gameID = Integer.parseInt(commands[++count]);
         GameState gameState = GameState.valueOf(commands[++count]);
         // Updates in previous player's scoreboard
-        String nameOfLastPlayer = commands[++count];
+        int indexOfLastPlayer = Integer.parseInt(commands[++count]);
         int scoreboardIndex = Integer.parseInt(commands[++count]);
         int scoreboardValue = Integer.parseInt(commands[++count]);
         // Winner data
@@ -463,7 +462,7 @@ public class AppManager {
         for(Game game : gameList) {
             if(game.getGameID() == gameID) {
                 game.setState(gameState);
-                game.updateScoreBoard(nameOfLastPlayer, scoreboardIndex, scoreboardValue);
+                game.updateScoreBoard(indexOfLastPlayer, scoreboardIndex, scoreboardValue);
                 game.setWinnerName(winnerName);
                 game.setWinnerScore(winnerScore);
             }

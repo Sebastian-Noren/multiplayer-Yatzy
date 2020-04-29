@@ -211,7 +211,7 @@ public class NetworkService extends Service {
                 connectedToCloud = false;
                 inputThread = null;
                 // Notify UI thread: Connection lost/terminated/unable to establish
-                updateUIThread("20");
+                updateUIThread("41");
 
                 Log.i(TAG, "Input thread closed " + Thread.currentThread().getName());
                 if(!intendedSocketClose) {
