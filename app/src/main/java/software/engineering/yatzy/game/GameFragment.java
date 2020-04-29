@@ -28,7 +28,7 @@ import androidx.fragment.app.Fragment;
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.Utilities;
 
-//TODO 1: Make a frame move to next player
+
 //TODO 2: Create gamerules wherte to place score
 
 public class GameFragment extends Fragment {
@@ -62,10 +62,11 @@ public class GameFragment extends Fragment {
     private ArrayList<TableLayout> tables;
 
     // Temp variable
-    private short tempTurn = 0;
-    private static int CURRENT_PLAYER = 0;
     private boolean firstThrowAllDiceHasLanded = false;
     private boolean scoreHasBeenPlaced = false;
+    private int gameIndex;
+
+    private ArrayList<Game> games;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_game, container, false);
@@ -77,7 +78,6 @@ public class GameFragment extends Fragment {
         soundButton = view.findViewById(R.id.soundBtn);
         chatButton = view.findViewById(R.id.chatBtn);
         turnStateText = view.findViewById(R.id.tgame_currentTurn);
-        turnStateText.setText(MessageFormat.format("{0}/3", tempTurn));
         diceImages = new ImageView[5];
         diceAnim = new AnimationDrawable[5];
 
@@ -87,15 +87,39 @@ public class GameFragment extends Fragment {
             diceImages[i] = view.findViewById(res);
         }
 
-        initDice();
-        addTable(getContext(), view);
-
         //Start game sound
         soundEngine.createApplicationSound();
         soundEngine.createGameBgSound();
 
+        ///***********************FAKE GAME***********************
+        int[] scoreboardTest = new int[SCOREBOARD_SIZE];
+        Random rand = new Random();
+        for (int i = 0; i < SCOREBOARD_SIZE ; i++) {
+            scoreboardTest[i] = rand.nextInt(30);
+        }
+        ArrayList<Player> mockPlayers = new ArrayList<>();
+        mockPlayers.add(new Player("Ali",PlayerParticipation.HOST,scoreboardTest));
+        mockPlayers.add(new Player("Seb",PlayerParticipation.ACCEPTED,scoreboardTest));
+        mockPlayers.add(new Player("Anton",PlayerParticipation.ACCEPTED,scoreboardTest));
 
-        setCurrentPlayersTable(CURRENT_PLAYER);
+        ArrayList<Player> mockPlayers2 = new ArrayList<>();
+        mockPlayers2.add(new Player("Ludvig",PlayerParticipation.HOST,scoreboardTest));
+        mockPlayers2.add(new Player("Anton",PlayerParticipation.ACCEPTED,scoreboardTest));
+        mockPlayers2.add(new Player("Apdifata",PlayerParticipation.ACCEPTED,scoreboardTest));
+        mockPlayers2.add(new Player("Ali",PlayerParticipation.ACCEPTED,scoreboardTest));
+
+        games = new ArrayList<>();
+        games.add(new Game(1,"GameTest",GameState.ONGOING, new TurnState(0,2, new int[] {2,6,6,1,4}), mockPlayers,"",0));
+        games.add(new Game(2,"GameTest2",GameState.ONGOING, new TurnState(2,0, new int[] {3,3,6,5,3}), mockPlayers2,"",0));
+        ///****************************************************
+
+        gameIndex = getArguments().getInt("gameToPlay");
+
+        initDice();
+        addTable(getContext(), view, gameIndex);
+        setCurrentPlayersTable(games.get(gameIndex).getTurnState().getCurrentPlayer());
+        turnStateText.setText(MessageFormat.format("{0}/3", games.get(gameIndex).getTurnState().getRollTurn()));
+
 
         state = State.PLAYING;
 
@@ -107,13 +131,15 @@ public class GameFragment extends Fragment {
         rollButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int turn = games.get(gameIndex).getTurnState().getRollTurn();
                 Log.i(TAG, "Rolling dice! ");
                 soundEngine.buttonClick();
 
                 switch (state)
                 {
                     case PLAYING:
-                        tempTurn++;
+                        turn++;
+                        games.get(gameIndex).getTurnState().setRollTurn(turn);
                         //TODO Sync "dice" with server
                         dice = diceRollAlgorithm();
                         if (!firstThrowAllDiceHasLanded) {
@@ -123,18 +149,19 @@ public class GameFragment extends Fragment {
                             resetSelectedDice();
                             rollAgainDiceAnimation();
                         }
-                        turnStateText.setText(MessageFormat.format("{0}/3", tempTurn));
+                        turnStateText.setText(MessageFormat.format("{0}/3", turn));
 
                         //When 3 turns ends and move to another player
-                        if (tempTurn >= 3 && !scoreHasBeenPlaced) {
+                        if (turn >= 3 && !scoreHasBeenPlaced) {
                             rollButton.setEnabled(false);
                         }
                         break;
                     case ENDOFTURN:
-                        removeLastCurrentPlayersTable(CURRENT_PLAYER);
-                        setCurrentPlayersTable(CURRENT_PLAYER+1);
+                        //TODO update to server state
+                        int x = games.get(gameIndex).getTurnState().getCurrentPlayer();
+                        removeLastCurrentPlayersTable(x);
+                        setCurrentPlayersTable(x+1);
                         break;
-
                     default:
                         Log.e(TAG, "Problem occurred!");
                         break;
@@ -331,7 +358,7 @@ public class GameFragment extends Fragment {
     //************************************** TABLE CODE BELOW HERE *******************************************************************
 
     // Score Board
-    private void addTable(final Context context, View view) {
+    private void addTable(final Context context, View view, final int gameIndex) {
         // convert to DPI (85 id DPI size wanted)
         final float scale = Objects.requireNonNull(getContext()).getResources().getDisplayMetrics().density;
         int pixels = (int) (85 * scale + 0.5f);
@@ -344,16 +371,12 @@ public class GameFragment extends Fragment {
         TableRow.LayoutParams rowParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT);
 
 
-        for (int i = 0; i < PLAYERS; i++) {
+        // Loop and create tables for every player in the game
+        for (int i = 0; i < games.get(gameIndex).getPlayerListSize(); i++) {
 
             // Create a table with 85 DPI width and mathe parent height in Linear layout
             TableLayout tableLayout = new TableLayout(context);
             tableLayout.setLayoutParams(new LinearLayout.LayoutParams(pixels, LinearLayout.LayoutParams.MATCH_PARENT));// assuming the parent view is a LinearLayout
-
-            // create a player and give him a scoreboard
-            Player player = new Player("Player " + i);
-            int[] scoreBoard = new int[SCOREBOARD_SIZE];
-            player.setScoreBoard(scoreBoard);
 
             //Header name
             TableRow rowHeader = new TableRow(context);
@@ -364,7 +387,7 @@ public class GameFragment extends Fragment {
             // Create textView in the header row
             TextView headerPlayerName = new TextView(context);
             headerPlayerName.setLayoutParams(rowParams); // TableRow is the parent view
-            headerPlayerName.setText(player.getName());
+            headerPlayerName.setText(games.get(gameIndex).getPlayer(i).getName());
             headerPlayerName.setGravity(Gravity.CENTER);
 
             // add textView item in the header row
@@ -381,10 +404,7 @@ public class GameFragment extends Fragment {
 
                 TextView scoreTextField = new TextView(context);
                 scoreTextField.setLayoutParams(rowParams); // TableRow is the parent view
-
-               // player.setScoreBoardElement(f, rand.nextInt(20));
-               // scoreTextField.setText(String.valueOf(player.getScoreBoardElement(f)));
-                scoreTextField.setText("");
+                scoreTextField.setText(String.valueOf(games.get(gameIndex).getPlayer(i).getScoreBoardElement(f)));
                 scoreTextField.setGravity(Gravity.CENTER);
                 tableRow.addView(scoreTextField);
 
@@ -394,11 +414,10 @@ public class GameFragment extends Fragment {
                     public void onClick(View view) {
                         TableRow tablerow = (TableRow) view;
                         TextView sample = (TextView) tablerow.getChildAt(0); // only one child (textview)
-                        // String result=sample.getText().toString();
                         sample.setText(String.valueOf(getSumSelectedDice()));
                         scoreHasBeenPlaced = true;
 
-                        if (tempTurn >= 3) {
+                        if (games.get(gameIndex).getTurnState().getRollTurn() >= 3) {
                             rollButton.setEnabled(true);
                             rollButton.setText("OK");
                             state = State.ENDOFTURN;
@@ -420,8 +439,6 @@ public class GameFragment extends Fragment {
         for (TableLayout layout : tables) {
             l.addView(layout);
         }
-
-
     }
 
     private void setCurrentPlayersTable(int playerIDIndex){
@@ -444,6 +461,7 @@ public class GameFragment extends Fragment {
 
 
     //************************************** TABLE CODE END HERE *******************************************************************
+
 
     @Override
     public void onDestroyView() {
