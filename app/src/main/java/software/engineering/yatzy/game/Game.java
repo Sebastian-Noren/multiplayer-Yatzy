@@ -72,12 +72,8 @@ public class Game {
     }
 
     // Add score in a single scoreboard cell
-    public void updateScoreBoard(String playerName, int index, int value) {
-        for(Player player : playerList) {
-            if(player.getName().equals(playerName)) {
-                player.setScoreBoardElement(index, value);
-            }
-        }
+    public void updateScoreBoard(int playerIndex, int scoreboardIndex, int scoreboardValue) {
+        playerList.get(playerIndex).setScoreBoardElement(scoreboardIndex, scoreboardValue);
     }
 
     // Called when all player's has responded and those that have declined has been removed
