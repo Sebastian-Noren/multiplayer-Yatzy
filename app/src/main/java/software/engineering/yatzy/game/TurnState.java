@@ -41,4 +41,8 @@ public class TurnState {
     public void setDiceValues(int[] diceValues) {
         this.diceValues = diceValues;
     }
+    public int getDiceElement(int index){
+        return diceValues[index];
+    }
+
 }
