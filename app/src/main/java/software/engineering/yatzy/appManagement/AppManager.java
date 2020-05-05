@@ -300,6 +300,13 @@ public class AppManager {
         } else {
             // Notification if not host: hostName has invited you to a game
         }
+
+        for(Game game : gameList) {
+            Log.i(TAG, game.getGameName());
+            for(Player player : game.playerList) {
+                Log.i(TAG, player.getName());
+            }
+        }
     }
 
     // #16
@@ -330,7 +337,7 @@ public class AppManager {
             if (commands[++count].equals("null")) {
                 break;
             }
-            count++;
+            //count++; ??
         }
         // Remaining data:
         GameState gameState = GameState.valueOf(commands[++count]);
