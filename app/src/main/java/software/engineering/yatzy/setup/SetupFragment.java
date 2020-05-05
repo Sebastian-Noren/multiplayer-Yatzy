@@ -36,7 +36,8 @@ public class SetupFragment extends Fragment implements Updatable{
 
         //Fake loading to server
        // fakeServerConection();
-        navController.navigate(R.id.navigation_Login);
+        //navController.navigate(R.id.navigation_Login);
+
         return view;
     }
 
@@ -55,6 +56,12 @@ public class SetupFragment extends Fragment implements Updatable{
             }
         });
         th.start();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        connectToCloudWithSessionKey();
     }
 
     public void connectToCloudWithSessionKey() {
