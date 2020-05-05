@@ -1,20 +1,25 @@
 package software.engineering.yatzy.game;
 
+import java.util.ArrayList;
+
 public class Game {
     private int gameID;
     private String gameName;
-    private String state;
+    private GameState state;
     private TurnState turnState;
-    private String WinnerName;
+    private ArrayList<Player> playerList;
+    private String winnerName;
     private int winnerScore;
+    private int playerListSize;
 
 
-    public Game(int gameID, String gameName, String state, TurnState turnState, String winnerName, int winnerScore) {
+    public Game(int gameID, String gameName, GameState state, TurnState turnState, ArrayList<Player> playerList, String winnerName, int winnerScore) {
         this.gameID = gameID;
         this.gameName = gameName;
         this.state = state;
         this.turnState = turnState;
-        WinnerName = winnerName;
+        this.playerList = playerList;
+        this.winnerName = winnerName;
         this.winnerScore = winnerScore;
     }
 
@@ -34,11 +39,11 @@ public class Game {
         this.gameName = gameName;
     }
 
-    public String getState() {
+    public GameState getState() {
         return state;
     }
 
-    public void setState(String state) {
+    public void setState(GameState state) {
         this.state = state;
     }
 
@@ -51,11 +56,11 @@ public class Game {
     }
 
     public String getWinnerName() {
-        return WinnerName;
+        return winnerName;
     }
 
     public void setWinnerName(String winnerName) {
-        WinnerName = winnerName;
+        this.winnerName = winnerName;
     }
 
     public int getWinnerScore() {
@@ -65,4 +70,24 @@ public class Game {
     public void setWinnerScore(int winnerScore) {
         this.winnerScore = winnerScore;
     }
+
+    // Add score in a single scoreboard cell
+    public void updateScoreBoard(int playerIndex, int scoreboardIndex, int scoreboardValue) {
+        playerList.get(playerIndex).setScoreBoardElement(scoreboardIndex, scoreboardValue);
+    }
+
+    // Called when all player's has responded and those that have declined has been removed
+    public void updatePlayerList(ArrayList<Player> updatedPlayerList) {
+        //playerList.clear();
+        playerList = updatedPlayerList;
+    }
+
+    public Player getPlayer(int index) {
+        return playerList.get(index);
+    }
+
+    public int getPlayerListSize(){
+        return playerList.size();
+    }
+
 }

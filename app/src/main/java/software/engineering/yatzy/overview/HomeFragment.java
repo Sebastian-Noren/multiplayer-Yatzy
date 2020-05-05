@@ -25,13 +25,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.overview.create_game.CreateGameDialog;
+import software.engineering.yatzy.overview.join_game.JoinGameDialog;
 
 public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput {
 
     private static final String TAG = "Info";
     private NavController navController;
-    private FloatingActionButton fabStart, fabCreateGame;
-    private TextView textCreateGame;
+    private FloatingActionButton fabStart, fabCreateGame, fabInvite;
+    private TextView textCreateGame, textFabInvite;
     private float translationY = 100f;
     private boolean isMenuOpen = false;
     private RecyclerView recyclerView;
@@ -65,15 +66,28 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
             }
         });
 
+        fabInvite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeMenu();
+                openInviteDialog();
+            }
+        });
+
         gameAdapter.setOnItemClickListener(new GameOverviewAdapter.ItemClickListener() {
             @Override
             public void onItemClickListener(int position) {
-                navController.navigate(R.id.navigation_game);
+                // Sends which game index the player chose
+                Bundle bundle = new Bundle();
+                Log.i(TAG,"Game index: " + position);
+                bundle.putInt("gameToPlay",position);
+                navController.navigate(R.id.navigation_game,bundle);
             }
         });
 
         return view;
     }
+
 
     //Initialization of view
     private void init(View view){
@@ -89,8 +103,14 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         recyclerView.setAdapter(gameAdapter);
 
         fabStart = view.findViewById(R.id.fabStart);
+        fabInvite = view.findViewById(R.id.fab_invite);
+        textFabInvite = view.findViewById(R.id.text_invitation);
         textCreateGame = view.findViewById(R.id.text_create_game);
         fabCreateGame = view.findViewById(R.id.fab_create_game);
+
+        fabInvite.setAlpha(0f);
+        textFabInvite.setAlpha(0f);
+        fabInvite.setEnabled(false);
 
         fabCreateGame.setAlpha(0f);
         textCreateGame.setAlpha(0f);
@@ -98,6 +118,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
 
         fabCreateGame.setTranslationY(translationY);
         textCreateGame.setTranslationY(translationY);
+        fabInvite.setTranslationX(translationY);
+        textFabInvite.setTranslationX(translationY);
     }
 
     private void openMenu() {
@@ -106,6 +128,10 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         fabCreateGame.animate().translationY(0f).alpha(1f).setInterpolator(interpolator).setDuration(300).start();
         textCreateGame.animate().translationY(0f).alpha(1f).setInterpolator(interpolator).setDuration(300).start();
         fabCreateGame.setEnabled(true);
+
+        fabInvite.animate().translationX(0f).alpha(1f).setInterpolator(interpolator).setDuration(300).start();
+        textFabInvite.animate().translationX(0f).alpha(1f).setInterpolator(interpolator).setDuration(300).start();
+        fabInvite.setEnabled(true);
     }
 
     private void closeMenu() {
@@ -114,13 +140,25 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         fabStart.animate().rotation(0f).setInterpolator(interpolator).setDuration(300).start();
         fabCreateGame.animate().translationY(translationY).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
         textCreateGame.animate().translationY(translationY).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
+
+        fabInvite.animate().translationX(translationY).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
+        textFabInvite.animate().translationX(translationY).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
+        fabInvite.setEnabled(false);
+    }
+
+    //TODO add more stuff here.
+    private void openInviteDialog() {
+            JoinGameDialog joinGameDialog = new JoinGameDialog();
+            joinGameDialog.getDialog();
+            joinGameDialog.setTargetFragment(this, 2);
+            joinGameDialog.show(Objects.requireNonNull(getFragmentManager()), "joinGame");
     }
 
     private void openCreateGameSessionDialog() {
         CreateGameDialog createGameDialog = new CreateGameDialog();
         createGameDialog.getDialog();
         createGameDialog.setTargetFragment(this, 1);
-        createGameDialog.show(Objects.requireNonNull(getFragmentManager()), "dialog");
+        createGameDialog.show(Objects.requireNonNull(getFragmentManager()), "createGame");
     }
 
     @Override

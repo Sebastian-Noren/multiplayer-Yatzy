@@ -16,8 +16,6 @@ import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import software.engineering.yatzy.Utilities;
-
 public class NetworkService extends Service {
 
     private static final String TAG = "Network NetworkService";
@@ -39,6 +37,7 @@ public class NetworkService extends Service {
     private Thread inputThread;
     public volatile boolean inputThreadRunning; // Variable to be checked inside thread loop.
     public volatile boolean connectedToCloud;
+    public volatile boolean serviceShutDown;
     public BlockingQueue<String> requestsToServer;
 
     // Gets called when the service is first started
@@ -49,32 +48,18 @@ public class NetworkService extends Service {
         inputThread = null;
         inputThreadRunning = false;
         connectedToCloud = false;
+        serviceShutDown = false;
 
         requestsToServer = new ArrayBlockingQueue<>(10);
     }
 
-    private int ccc = 0;
     // When a client binds to a service; a Binder object will be returned (for bound service),
     // to facilitate the communication: client -> service
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind " + ccc++);
+        Log.i(TAG, "onBind");
         return binder;
-    }
-
-    // REMOVE LATER
-    @Override
-    public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "onUnbind " + ccc++);
-        return super.onUnbind(intent);
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "destroy service " + ccc++);
-        serviceShutDown = true;
-        super.onDestroy();
     }
 
     /*
@@ -87,14 +72,11 @@ public class NetworkService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         // + stop threads running
-        Log.d(TAG, "Service dead");
         stopSelf();
-
     }
 
     // =================================== TEST ====================================================
 
-    volatile boolean serviceShutDown = false;
     public void test(final Handler handler) {
         new Thread(new Runnable() {
             int count = 0;
@@ -112,7 +94,7 @@ public class NetworkService extends Service {
                         public void run() {
                             AppManager.getInstance().testInt = count;
                             AppManager.getInstance().update();
-                            Log.d(TAG, "count " + count);
+                            Log.i(TAG, "count " + count);
                         }
                     });
                 }
@@ -136,6 +118,7 @@ public class NetworkService extends Service {
     }
 
     public void stopConnectionToCloudServer() {
+        Log.i(TAG, "Stopping server connection threads");
         if (inputThreadRunning) {
             // Terminate inputThread
             if(socket != null) {
@@ -151,8 +134,6 @@ public class NetworkService extends Service {
         inputThread = null;
         inputThreadRunning = false;
         requestsToServer.clear();
-
-        Log.d(TAG, "Thread stop requested");
     }
 
     // ====================== INPUT THREAD =======================================
@@ -194,7 +175,7 @@ public class NetworkService extends Service {
                 inputThreadRunning = true;
                 intendedSocketClose = false;
 
-                Log.d(TAG, "Input thread started " + Thread.currentThread().getName());
+                Log.i(TAG, "Input thread started " + Thread.currentThread().getName());
                 // Try to establish the connection with cloud server (IOException if not possible)
                 socket = new Socket("134.209.198.123", 8082);
                 // 134.209.198.123
@@ -230,9 +211,9 @@ public class NetworkService extends Service {
                 connectedToCloud = false;
                 inputThread = null;
                 // Notify UI thread: Connection lost/terminated/unable to establish
-                updateUIThread("20");
+                updateUIThread("41");
 
-                Log.d(TAG, "Input thread closed " + Thread.currentThread().getName());
+                Log.i(TAG, "Input thread closed " + Thread.currentThread().getName());
                 if(!intendedSocketClose) {
                     // Reconnect
                 }
@@ -280,7 +261,7 @@ public class NetworkService extends Service {
         @Override
         public void run() {
 
-            Log.d(TAG, "Output thread started " + Thread.currentThread().getName());
+            Log.i(TAG, "Output thread started " + Thread.currentThread().getName());
 
             try {
                 while (true) {
@@ -302,7 +283,7 @@ public class NetworkService extends Service {
             try {
                 if (output != null) {
                     output.close();
-                    Log.d(TAG, "Output thread closed " + Thread.currentThread().getName());
+                    Log.i(TAG, "Output thread closed " + Thread.currentThread().getName());
                 }
             } catch (IOException e) {
                 //Handle ??
