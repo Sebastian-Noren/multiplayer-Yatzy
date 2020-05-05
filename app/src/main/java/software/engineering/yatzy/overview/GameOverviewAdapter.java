@@ -63,7 +63,7 @@ public class GameOverviewAdapter extends RecyclerView.Adapter<GameOverviewAdapte
 
             this.status = itemView.findViewById(R.id.text_view_status);
             this.description = itemView.findViewById(R.id.text_view_description);
-            this.title = itemView.findViewById(R.id.text_view_title);
+            this.title = itemView.findViewById(R.id.text_gamename);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

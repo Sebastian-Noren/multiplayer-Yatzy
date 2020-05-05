@@ -1,6 +1,8 @@
 package software.engineering.yatzy.appManagement;
 
-public class LoggedInUser {
+import java.io.Serializable;
+
+public class LoggedInUser implements Serializable {
 
     private String nameID;
     private String sessionKey;

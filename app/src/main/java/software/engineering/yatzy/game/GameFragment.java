@@ -63,9 +63,9 @@ public class GameFragment extends Fragment implements Updatable {
     private ConstraintLayout chatLayoutFrame;
     private boolean isChatOpen = false;
 
-    private Dice[] dices = {new Dice("Dice 1", true, 0, false), new Dice("Dice  2", true, 0, false),
-            new Dice("Dice 3", true, 0, false), new Dice("Dice 4", true, 0, false),
-            new Dice("Dice 5", true, 0, false)};
+    private Dice[] dices = {new Dice(DiceName.DICE1, true, 0, false), new Dice(DiceName.DICE2, true, 0, false),
+            new Dice(DiceName.DICE3, true, 0, false), new Dice(DiceName.DICE4, true, 0, false),
+            new Dice(DiceName.DICE5, true, 0, false)};
 
     private int[] dice;
     private ArrayList<TableLayout> tables;

@@ -7,6 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Objects;
 
@@ -35,37 +38,54 @@ public class LoginFragment extends Fragment implements Updatable {
     private String tag = "Info";
     private Button loginBtn;
     private NavController navController;
+    private EditText editText_nameID, editTextPassword;
+    private TextView login_label;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
         Log.d(tag, "In the LoginFragment");
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
+
         loginBtn = view.findViewById(R.id.loginButton);
+        editText_nameID = view.findViewById(R.id.name_id_ed);
+        editTextPassword = view.findViewById(R.id.password_edittext);
+        login_label = view.findViewById(R.id.login_label);
+
         // Report currently displayed fragment to AppManager. Maybe from onViewCreated?
         AppManager.getInstance().currentFragment = this;
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                navController.navigate(R.id.navigation_main);
+                    login();
+
             }
         });
+
         return view;
     }
 
     @Override
-    public void update(int protocolIndex, int specifier, String exceptionMessage) {
+    public void update(int protocolIndex, int gameID, String exceptionMessage) {
         // If exception message (ex invalid login attempt or unable to connect to Server)
         if(protocolIndex == 40) {
             // Display exceptionMessage in label
+            login_label.setText(exceptionMessage);
         }
     }
 
     public void login() {
-        String nameID = ""; // Get from text field
-        String password = ""; // Get from password text field
-        String loginRequest = "1:" + nameID + ":" + password;
-        AppManager.getInstance().establishCloudServerConnection(loginRequest);
+        String nameID = editText_nameID.getText().toString().trim(); // Get from text field
+        String password = editTextPassword.getText().toString().trim(); // Get from password text field
+
+        if (nameID.equals("") || password.equals("")){
+            login_label.setText("Enter NameID and Password");
+        }else if (nameID.equals(":") || password.equals(":")){
+            login_label.setText("Unknown Character ");
+        }else {
+            String loginRequest = "1:" + nameID + ":" + password;
+            AppManager.getInstance().establishCloudServerConnection(loginRequest);
+        }
     }
 
     // CAN THE BELOW LIFECYCLE METHODS BE REMOVED?
