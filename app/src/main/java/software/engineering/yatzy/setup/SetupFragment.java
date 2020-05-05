@@ -62,7 +62,7 @@ public class SetupFragment extends Fragment implements Updatable{
     }
 
     @Override
-    public void update(int protocolIndex, int specifier, String exceptionMessage) {
+    public void update(int protocolIndex, int gameID, String exceptionMessage) {
         // Keep empty here
     }
 
