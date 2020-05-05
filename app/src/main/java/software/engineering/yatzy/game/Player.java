@@ -30,7 +30,6 @@ public class Player {
     }
 
     public int getScoreBoardElement(int index){
-
         return scoreBoard[index];
     }
 
