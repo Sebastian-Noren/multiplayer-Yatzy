@@ -177,7 +177,7 @@ public class NetworkService extends Service {
 
                 Log.i(TAG, "Input thread started " + Thread.currentThread().getName());
                 // Try to establish the connection with cloud server (IOException if not possible)
-                socket = new Socket("134.209.198.123", 8082);
+                socket = new Socket("134.209.198.123", 8083);
                 // 134.209.198.123
 
                 connectedToCloud = true;
@@ -266,6 +266,8 @@ public class NetworkService extends Service {
             try {
                 while (true) {
                     String command = requestsToServer.take();
+
+                    Log.i(TAG, "REQUEST TO SERVER: " + command);
 
                     output.writeUTF(command);
                     output.flush();
