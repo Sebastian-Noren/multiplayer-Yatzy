@@ -47,7 +47,7 @@ public class LoginFragment extends Fragment implements Updatable {
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
 
         loginBtn = view.findViewById(R.id.loginButton);
-        editText_nameID = view.findViewById(R.id.name_id_edittext);
+        editText_nameID = view.findViewById(R.id.name_id_ed);
         editTextPassword = view.findViewById(R.id.password_edittext);
         login_label = view.findViewById(R.id.login_label);
 
@@ -70,6 +70,7 @@ public class LoginFragment extends Fragment implements Updatable {
         // If exception message (ex invalid login attempt or unable to connect to Server)
         if(protocolIndex == 40) {
             // Display exceptionMessage in label
+            login_label.setText(exceptionMessage);
         }
     }
 
@@ -77,15 +78,13 @@ public class LoginFragment extends Fragment implements Updatable {
         String nameID = editText_nameID.getText().toString().trim(); // Get from text field
         String password = editTextPassword.getText().toString().trim(); // Get from password text field
 
-        if (nameID.equals("") && password.equals("")){
+        if (nameID.equals("") || password.equals("")){
             login_label.setText("Enter NameID and Password");
         }else if (nameID.equals(":") || password.equals(":")){
-            Toast.makeText(getActivity(),"Unknown Character ",Toast.LENGTH_SHORT).show();
             login_label.setText("Unknown Character ");
         }else {
             String loginRequest = "1:" + nameID + ":" + password;
             AppManager.getInstance().establishCloudServerConnection(loginRequest);
-            navController.navigate(R.id.navigation_main);
         }
     }
 
