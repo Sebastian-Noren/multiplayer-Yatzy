@@ -28,11 +28,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.Utilities;
 import software.engineering.yatzy.appManagement.AppManager;
+import software.engineering.yatzy.appManagement.Updatable;
 import software.engineering.yatzy.game.Player;
 import software.engineering.yatzy.testing.localDatabase.DataBaseAccess;
 
 
-public class CreateGameDialog extends AppCompatDialogFragment {
+public class CreateGameDialog extends AppCompatDialogFragment implements Updatable {
+
     private String tag = "Info";
     private String host;
     private TextView hostName, listCounterText;
@@ -44,14 +46,18 @@ public class CreateGameDialog extends AppCompatDialogFragment {
     private ImageButton saveBtn, cancelBtn;
     private short counter = 0;
 
+    private OnSelectedInput onSelectedInput;
     //TODO 5. Make so string input are safe
     private DataBaseAccess dataBaseAccess; // Delete when database is online
+
+    @Override
+    public void update(int protocolIndex, int specifier, String exceptionMessage) {
+
+    }
 
     public interface OnSelectedInput {
         void saveComplete(String gameName, String host, ArrayList<String> invitedPlayers);
     }
-
-    private OnSelectedInput onSelectedInput;
 
     @Nullable
     @Override
@@ -167,8 +173,8 @@ public class CreateGameDialog extends AppCompatDialogFragment {
         inputGameName = view.findViewById(R.id.input_new_game);
         hostName = view.findViewById(R.id.new_game_host);
         //TODO unmark when account is up remove local String host
-       //host = AppManager.getInstance().loggedInUser.getNameID();
-        String host = "PlayerHost";
+       host = AppManager.getInstance().loggedInUser.getNameID();
+       // String host = "PlayerHost";
         hostName.setText(host);
         searchPlayer = view.findViewById(R.id.autoCompleteTextView);
         RecyclerView recViewInvitePlayers = view.findViewById(R.id.create_game_invite_recyclerlist);

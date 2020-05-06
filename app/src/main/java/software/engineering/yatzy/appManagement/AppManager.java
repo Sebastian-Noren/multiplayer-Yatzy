@@ -405,7 +405,7 @@ public class AppManager {
             if(game.getGameID() == gameID) {
                 game.setTurnState(turnState);
                 game.updateScoreBoard(indexOfPreviousPlayer, scoreboardIndex, scoreboardValue);
-                if(game.getPlayerByIndex(rollNr).getName().equals(loggedInUser.getNameID())) {
+                if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
             }
@@ -448,7 +448,7 @@ public class AppManager {
                 game.setState(gameState);
                 game.setTurnState(turnState);
                 game.updatePlayerList(playerList);
-                if(game.getPlayerByIndex(rollNr).getName().equals(loggedInUser.getNameID())) {
+                if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
             }

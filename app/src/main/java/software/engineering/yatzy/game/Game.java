@@ -82,7 +82,7 @@ public class Game {
         playerList = updatedPlayerList;
     }
 
-    public Player getPlayerByIndex(int index) {
+    public Player getPlayer(int index) {
         return playerList.get(index);
     }
 

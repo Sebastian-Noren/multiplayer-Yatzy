@@ -24,6 +24,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.overview.create_game.CreateGameDialog;
 import software.engineering.yatzy.overview.join_game.JoinGameDialog;
 
@@ -185,24 +186,28 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "HomeFragment: In the onActivityCreated() event");
     }
+
     //5
     @Override
     public void onStart() {
         super.onStart();
         Log.d(TAG, "HomeFragment: In the onStart() event");
     }
+
     //6
     @Override
     public void onResume() {
         super.onResume();
         Log.d(TAG, "HomeFragment: In the onResume() event");
     }
+
     //7
     @Override
     public void onPause() {
         super.onPause();
         Log.d(TAG, "HomeFragment: In the onPause() event");
     }
+
     //8
     @Override
     public void onStop() {
@@ -216,6 +221,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         super.onDestroy();
         Log.d(TAG, "HomeFragment: In the onDestroy() event");
     }
+
     //11
     @Override
     public void onDetach() {
@@ -223,11 +229,14 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         Log.d(TAG, "HomeFragment: In the onDetach() event");
     }
 
-
     @Override
     public void saveComplete(String gameName, String host, ArrayList<String> listOfInvitedPlayers ) {
         //TODO send data to server
-        Log.i(TAG, String.format("saveComplete: %s Host: %s list of players: %s", gameName, host, listOfInvitedPlayers.toString()));
+
+        AppManager.getInstance().addClientRequest("32:");
+      //  Log.i(TAG, String.format("saveComplete: %s Host: %s list of players: %s", gameName, host, listOfInvitedPlayers.toString()));
+
+
         gameSessionLists.add(new Room(gameName, "notes","Ongoing",++roomID));
         gameAdapter.notifyDataSetChanged();
     }
