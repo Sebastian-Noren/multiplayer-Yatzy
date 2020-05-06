@@ -1,5 +1,7 @@
 package software.engineering.yatzy.game;
 
+import java.util.Arrays;
+
 public class TurnState {
     private int currentPlayer;
     private int rollTurn;
@@ -45,4 +47,12 @@ public class TurnState {
         return diceValues[index];
     }
 
+    @Override
+    public String toString() {
+        return "TurnState{" +
+                "currentPlayer=" + currentPlayer +
+                ", rollTurn=" + rollTurn +
+                ", diceValues=" + Arrays.toString(diceValues) +
+                '}';
+    }
 }

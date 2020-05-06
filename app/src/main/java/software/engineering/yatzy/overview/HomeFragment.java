@@ -1,8 +1,6 @@
 package software.engineering.yatzy.overview;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,7 +32,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     private NavController navController;
     private FloatingActionButton fabStart, fabCreateGame, fabInvite;
     private TextView textCreateGame, textFabInvite;
-    private float translationY = 100f;
+    private float translationYX = 100f;
     private boolean isMenuOpen = false;
     private RecyclerView recyclerView;
     private OvershootInterpolator interpolator = new OvershootInterpolator();
@@ -100,6 +98,12 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         gameSessionLists.add(new Room("Room 1","4 players","Ongoing",1));
         gameSessionLists.add(new Room("Game 2", "Monkey was the winner","Finished",2));
 
+        String gameRoom =  AppManager.getInstance().gameList.get(0).getGameName();
+        String gameState = AppManager.getInstance().gameList.get(0).getState().toString();
+        int roomId = AppManager.getInstance().gameList.get(0).getGameID();
+        String description = "A real game";
+        gameSessionLists.add(new Room(gameRoom,description,gameState,roomId));
+
         gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
         recyclerView.setAdapter(gameAdapter);
 
@@ -117,10 +121,10 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         textCreateGame.setAlpha(0f);
         fabCreateGame.setEnabled(false);
 
-        fabCreateGame.setTranslationY(translationY);
-        textCreateGame.setTranslationY(translationY);
-        fabInvite.setTranslationX(translationY);
-        textFabInvite.setTranslationX(translationY);
+        fabCreateGame.setTranslationY(translationYX);
+        textCreateGame.setTranslationY(translationYX);
+        fabInvite.setTranslationX(translationYX);
+        textFabInvite.setTranslationX(translationYX);
     }
 
     private void openMenu() {
@@ -139,11 +143,11 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         isMenuOpen = !isMenuOpen;
         fabCreateGame.setEnabled(false);
         fabStart.animate().rotation(0f).setInterpolator(interpolator).setDuration(300).start();
-        fabCreateGame.animate().translationY(translationY).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
-        textCreateGame.animate().translationY(translationY).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
+        fabCreateGame.animate().translationY(translationYX).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
+        textCreateGame.animate().translationY(translationYX).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
 
-        fabInvite.animate().translationX(translationY).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
-        textFabInvite.animate().translationX(translationY).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
+        fabInvite.animate().translationX(translationYX).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
+        textFabInvite.animate().translationX(translationYX).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
         fabInvite.setEnabled(false);
     }
 

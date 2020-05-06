@@ -90,4 +90,17 @@ public class Game {
         return playerList.size();
     }
 
+    @Override
+    public String toString() {
+        return "Game{" +
+                "gameID=" + gameID +
+                ", gameName='" + gameName + '\'' +
+                ", state=" + state +
+                ", turnState=" + turnState +
+                ", playerList=" + playerList +
+                ", winnerName='" + winnerName + '\'' +
+                ", winnerScore=" + winnerScore +
+                ", playerListSize=" + playerListSize +
+                '}';
+    }
 }
