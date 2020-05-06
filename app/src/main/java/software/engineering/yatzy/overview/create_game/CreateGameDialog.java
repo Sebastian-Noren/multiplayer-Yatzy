@@ -173,8 +173,8 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
         inputGameName = view.findViewById(R.id.input_new_game);
         hostName = view.findViewById(R.id.new_game_host);
         //TODO unmark when account is up remove local String host
-       //host = AppManager.getInstance().loggedInUser.getNameID();
-        String host = "PlayerHost";
+       host = AppManager.getInstance().loggedInUser.getNameID();
+       // String host = "PlayerHost";
         hostName.setText(host);
         searchPlayer = view.findViewById(R.id.autoCompleteTextView);
         RecyclerView recViewInvitePlayers = view.findViewById(R.id.create_game_invite_recyclerlist);
