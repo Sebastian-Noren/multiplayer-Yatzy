@@ -28,6 +28,7 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.appManagement.Updatable;
 
 public class GameFragment extends Fragment implements Updatable {
@@ -116,6 +117,8 @@ public class GameFragment extends Fragment implements Updatable {
 
         gameIndex = getArguments().getInt("gameToPlay");
         currentGame = games.get(gameIndex);
+
+        Log.e(TAG, "onCreateView: " + AppManager.getInstance().gameList.get(0).toString() );
 
         initDice();
         addTable(getContext(), view);
