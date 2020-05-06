@@ -82,8 +82,17 @@ public class Game {
         playerList = updatedPlayerList;
     }
 
-    public Player getPlayer(int index) {
+    public Player getPlayerByIndex(int index) {
         return playerList.get(index);
+    }
+
+    public Player getPlayerByName(String nameID) {
+        for(Player player : playerList) {
+            if(player.getName() == nameID) {
+                return player;
+            }
+        }
+        return  null;
     }
 
     public int getPlayerListSize(){

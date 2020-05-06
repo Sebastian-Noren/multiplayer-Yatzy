@@ -3,7 +3,7 @@ package software.engineering.yatzy.game;
 import java.util.Arrays;
 
 public class Player {
-    private PlayerParticipation participation;
+    public PlayerParticipation participation;
     private String name;
     private int[] scoreBoard;
 

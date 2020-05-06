@@ -27,7 +27,6 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import software.engineering.yatzy.R;
-import software.engineering.yatzy.Utilities;
 import software.engineering.yatzy.appManagement.Updatable;
 
 
@@ -421,7 +420,7 @@ public class GameFragment extends Fragment implements Updatable {
             // Create textView in the header row
             TextView headerPlayerName = new TextView(context);
             headerPlayerName.setLayoutParams(rowParams); // TableRow is the parent view
-            headerPlayerName.setText(currentGame.getPlayer(i).getName());
+            headerPlayerName.setText(currentGame.getPlayerByIndex(i).getName());
             headerPlayerName.setGravity(Gravity.CENTER);
 
             // add textView item in the header row
@@ -438,7 +437,7 @@ public class GameFragment extends Fragment implements Updatable {
 
                 TextView scoreTextField = new TextView(context);
                 scoreTextField.setLayoutParams(rowParams); // TableRow is the parent view
-                scoreTextField.setText(String.valueOf(currentGame.getPlayer(i).getScoreBoardElement(f)));
+                scoreTextField.setText(String.valueOf(currentGame.getPlayerByIndex(i).getScoreBoardElement(f)));
                 scoreTextField.setGravity(Gravity.CENTER);
                 tableRow.addView(scoreTextField);
 
