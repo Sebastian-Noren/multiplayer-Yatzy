@@ -52,8 +52,9 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
     public void update(int protocolIndex, int specifier, String exceptionMessage) {
 
         switch (protocolIndex) {
-            case 1:
+            case 31:
                 //TODO Add so server update
+                initSearchList();
                 break;
             case 40:
                 Log.e(tag, exceptionMessage);
@@ -75,6 +76,7 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
         View view = inflater.inflate(R.layout.create_new_game_popup, container, false);
         Log.d(tag, "Create account dialog open");
         AppManager.getInstance().currentFragment = this;
+        Log.i(tag, "Create dialog " + AppManager.getInstance().currentFragment.toString());
 
         itemTouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -88,9 +90,9 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
                 inviteSearchAdapter.notifyDataSetChanged();
             }
         };
+        AppManager.getInstance().addClientRequest("30");
 
         initDialog(view);
-        initSearchList();
 
         searchPlayer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -130,6 +132,7 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
                 }
                 Utilities.hideSoftKeyboard(getActivity());
                 getDialog().dismiss();
+                //Send data to HomeFragment
                 onSelectedInput.saveComplete(gameName, host, listPlayers);
             }
         });
@@ -164,12 +167,11 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
     }
 
     private void initSearchList() {
-
-        ArrayList<String> suggestList = new ArrayList<>();
-        suggestList.add("Anton");
-        suggestList.add("Sebastian");
+        ArrayList<String> suggestList = AppManager.getInstance().searchableNames;
+        Log.i(tag, suggestList.toString());
         ArrayAdapter<String> suggestAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, suggestList);
         searchPlayer.setAdapter(suggestAdapter);
+        suggestAdapter.notifyDataSetChanged();
     }
 
     private void initDialog(View view) {
