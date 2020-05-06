@@ -45,4 +45,14 @@ public class Room {
     public void setStatus(String status) {
         Status = status;
     }
+
+    @Override
+    public String toString() {
+        return "Room{" +
+                "title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", Status='" + Status + '\'' +
+                ", roomID=" + roomID +
+                '}';
+    }
 }
