@@ -7,7 +7,7 @@ public class Game {
     private String gameName;
     private GameState state;
     private TurnState turnState;
-    private ArrayList<Player> playerList;
+    public ArrayList<Player> playerList;
     private String winnerName;
     private int winnerScore;
     private int playerListSize;

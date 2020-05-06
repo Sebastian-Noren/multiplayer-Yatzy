@@ -72,6 +72,8 @@ public class AppManager {
         loginAttemptWithSessionKey = false;
         loggedInUser = null;
         currentFragment = null;
+        gameList = new ArrayList<>();
+        universalHighScores = new ArrayList<>();
     }
 
     private static AppManager instance = null;
@@ -174,6 +176,7 @@ public class AppManager {
 
 
     public void update(String command) {
+        Log.i(TAG, "REQUEST FROM SERVER: " + command);
 
         String[] commands = command.split(":");
         try {
@@ -207,7 +210,7 @@ public class AppManager {
                     updateIndividualHighScore(commands[1]);
                     break;
                 case "24":
-                    updateUniversalHighScoreList(Arrays.copyOfRange(commands, 1, 6));
+                    updateUniversalHighScoreList(Arrays.copyOfRange(commands, 1, 7));
                     break;
                 case "34":
                     updateInvitationReply(commands);
@@ -223,7 +226,7 @@ public class AppManager {
                     break;
             }
         }catch (Exception e) {
-            // Handle? NumberFormatExceptions or IndexOutOfBoundsException
+            Log.i(TAG, "update exception " + e.getMessage(), e);
         }
     }
 
@@ -240,7 +243,7 @@ public class AppManager {
             // Write user data to cache
             writeUserToCache();
             // Initiate universal top 3 high score
-            updateUniversalHighScoreList(Arrays.copyOfRange(commands, 7, 12));
+            updateUniversalHighScoreList(Arrays.copyOfRange(commands, 7, 13));
             // Direct to main menu
             navController.navigate(R.id.navigation_main);
         } else {
@@ -255,7 +258,7 @@ public class AppManager {
         if (commands[1].equals("ok")) {
             loggedInUser.gamesPlayed = Integer.parseInt(commands[3]);
             loggedInUser.highScore = Integer.parseInt(commands[4]);
-            updateUniversalHighScoreList(Arrays.copyOfRange(commands, 5, 10));
+            updateUniversalHighScoreList(Arrays.copyOfRange(commands, 5, 11));
             // Direct to main menu
             navController.navigate(R.id.navigation_main);
         } else {
@@ -286,7 +289,7 @@ public class AppManager {
             if (commands[++count].equals("null")) {
                 break;
             }
-            count++;
+            //count++;
         }
         TurnState initialTurnState = new TurnState();
         // Create new game and add it to list of games:
@@ -296,6 +299,13 @@ public class AppManager {
             currentFragment.update(15, gameID, null);
         } else {
             // Notification if not host: hostName has invited you to a game
+        }
+
+        for(Game game : gameList) {
+            Log.i(TAG, game.getGameName());
+            for(Player player : game.playerList) {
+                Log.i(TAG, player.getName());
+            }
         }
     }
 
@@ -327,7 +337,7 @@ public class AppManager {
             if (commands[++count].equals("null")) {
                 break;
             }
-            count++;
+            //count++; ??
         }
         // Remaining data:
         GameState gameState = GameState.valueOf(commands[++count]);
@@ -487,9 +497,9 @@ public class AppManager {
     private void updateUniversalHighScoreList(String[] top3) throws NumberFormatException {
         Log.i(TAG, "From server: Update of universal high score list");
         universalHighScores.clear();
-        universalHighScores.add(new HighScoreRecord(top3[1], Integer.parseInt(top3[2]))); // #1
-        universalHighScores.add(new HighScoreRecord(top3[3], Integer.parseInt(top3[4]))); // #2
-        universalHighScores.add(new HighScoreRecord(top3[5], Integer.parseInt(top3[6]))); // #3
+        universalHighScores.add(new HighScoreRecord(top3[0], Integer.parseInt(top3[1]))); // #1
+        universalHighScores.add(new HighScoreRecord(top3[2], Integer.parseInt(top3[3]))); // #2
+        universalHighScores.add(new HighScoreRecord(top3[4], Integer.parseInt(top3[5]))); // #3
         if (appInFocus) {
             currentFragment.update(24, -1, null);
         }
@@ -534,6 +544,7 @@ public class AppManager {
             public void run() {
                 if (isBound) {
                     networkService.socketException = false;
+                    networkService.stopConnectionToCloudServer();
                 }
                 for (attempt = 0; attempt < 10; attempt++) {
                     Log.i(TAG, "Establish server connection " + Thread.currentThread().getName());
@@ -587,10 +598,12 @@ public class AppManager {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                Log.i(TAG, "Writing user data to cache");
                 String filePath = applicationContext.getCacheDir() + "userdata"; // Shouldn't it be "/userdata" ??
                 try (ObjectOutputStream objectOutput = new ObjectOutputStream(new FileOutputStream(new File(filePath)))) {
                     objectOutput.writeObject(loggedInUser);
                 } catch (IOException e) {
+                    Log.i(TAG, e.getMessage());
                     //writeToast("Unable to write user tho cache");
                 }
             }

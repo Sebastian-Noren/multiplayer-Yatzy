@@ -9,4 +9,6 @@
     <color name="colorTest">#F4511E</color>
     <color name="colorFieldOK">#43A047</color>
     <color name="colorFieldNotOK">#E53935</color>
+    <color name="colorBlue">#3F51B5</color>
+    <color name="colorPurple">#9C27B0</color>
 </resources>
