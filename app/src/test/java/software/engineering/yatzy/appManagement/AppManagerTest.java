@@ -32,7 +32,7 @@ public class AppManagerTest {
     }
 
     @Test
-    public void gameParticipationUpdate() {
+    public void playerParticipationUpdate() {
         AppManager.getInstance().update(newGame);
         AppManager.getInstance().loggedInUser = loggedInUser;
 
