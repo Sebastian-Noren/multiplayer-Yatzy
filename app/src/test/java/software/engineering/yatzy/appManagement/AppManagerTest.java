@@ -3,13 +3,9 @@ package software.engineering.yatzy.appManagement;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.lang.reflect.ParameterizedType;
-
 import software.engineering.yatzy.game.Game;
 import software.engineering.yatzy.game.GameState;
 import software.engineering.yatzy.game.PlayerParticipation;
-
-import static org.junit.Assert.*;
 
 public class AppManagerTest {
 
