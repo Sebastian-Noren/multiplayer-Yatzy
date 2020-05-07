@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 
@@ -27,11 +28,8 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import software.engineering.yatzy.R;
-import software.engineering.yatzy.Utilities;
+import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.appManagement.Updatable;
-
-
-//TODO 2: Create gamerules wherte to place score
 
 public class GameFragment extends Fragment implements Updatable {
 
@@ -41,9 +39,8 @@ public class GameFragment extends Fragment implements Updatable {
 
     }
 
-    enum State
-    {
-        PLAYING, ENDOFTURN
+    enum State {
+        PLAYING, PLACE_SCORE, END_TURN
     }
 
     private static final String TAG = "Info";
@@ -101,34 +98,32 @@ public class GameFragment extends Fragment implements Updatable {
 
         ///***********************FAKE GAME***********************
         int[] scoreboardTest = new int[SCOREBOARD_SIZE];
-        Random rand = new Random();
-        for (int i = 0; i < SCOREBOARD_SIZE ; i++) {
-            scoreboardTest[i] = rand.nextInt(30);
-        }
+
         ArrayList<Player> mockPlayers = new ArrayList<>();
-        mockPlayers.add(new Player("Ali",PlayerParticipation.HOST,scoreboardTest));
-        mockPlayers.add(new Player("Seb",PlayerParticipation.ACCEPTED,scoreboardTest));
-        mockPlayers.add(new Player("Anton",PlayerParticipation.ACCEPTED,scoreboardTest));
+        mockPlayers.add(new Player("Ali", PlayerParticipation.HOST, scoreboardTest));
+        mockPlayers.add(new Player("Seb", PlayerParticipation.ACCEPTED, scoreboardTest));
+        mockPlayers.add(new Player("Anton", PlayerParticipation.ACCEPTED, scoreboardTest));
 
         ArrayList<Player> mockPlayers2 = new ArrayList<>();
-        mockPlayers2.add(new Player("Ludvig",PlayerParticipation.HOST,scoreboardTest));
-        mockPlayers2.add(new Player("Anton",PlayerParticipation.ACCEPTED,scoreboardTest));
-        mockPlayers2.add(new Player("Apdifata",PlayerParticipation.ACCEPTED,scoreboardTest));
-        mockPlayers2.add(new Player("Ali",PlayerParticipation.ACCEPTED,scoreboardTest));
+        mockPlayers2.add(new Player("Ludvig", PlayerParticipation.HOST, scoreboardTest));
+        mockPlayers2.add(new Player("Anton", PlayerParticipation.ACCEPTED, scoreboardTest));
+        mockPlayers2.add(new Player("Apdifata", PlayerParticipation.ACCEPTED, scoreboardTest));
+        mockPlayers2.add(new Player("Ali", PlayerParticipation.ACCEPTED, scoreboardTest));
 
         ArrayList<Game> games = new ArrayList<>();
-        games.add(new Game(1,"GameTest",GameState.ONGOING, new TurnState(0,1, new int[] {2,6,6,1,4}), mockPlayers,"",0));
-        games.add(new Game(2,"GameTest2",GameState.ONGOING, new TurnState(2,0, new int[] {3,3,6,5,3}), mockPlayers2,"",0));
+        games.add(new Game(1, "GameTest", GameState.ONGOING, new TurnState(0, 2, new int[]{2, 6, 6, 6, 4}), mockPlayers, "", 0));
+        games.add(new Game(2, "GameTest2", GameState.ONGOING, new TurnState(2, 0, new int[]{3, 3, 6, 5, 3}), mockPlayers2, "", 0));
         ///****************************************************
 
         gameIndex = getArguments().getInt("gameToPlay");
         currentGame = games.get(gameIndex);
 
+        Log.e(TAG, "onCreateView: " + AppManager.getInstance().gameList.get(0).toString() );
+
         initDice();
         addTable(getContext(), view);
         setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
         turnStateText.setText(MessageFormat.format("{0}/3", currentGame.getTurnState().getRollTurn()));
-
         state = State.PLAYING;
 
 
@@ -136,13 +131,13 @@ public class GameFragment extends Fragment implements Updatable {
         rollButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int turn = currentGame.getTurnState().getRollTurn();
                 Log.i(TAG, "Rolling dice! ");
+                int turn = currentGame.getTurnState().getRollTurn();
                 soundEngine.buttonClick();
 
-                switch (state)
-                {
+                switch (state) {
                     case PLAYING:
+                        Log.i(TAG, "PLAYING STATE! ");
                         turn++;
                         dice = diceRollAlgorithm();
                         currentGame.getTurnState().setRollTurn(turn);
@@ -159,13 +154,19 @@ public class GameFragment extends Fragment implements Updatable {
                         //When 3 turns ends and move to another player
                         if (turn >= 3 && !scoreHasBeenPlaced) {
                             rollButton.setEnabled(false);
+                            state = State.PLACE_SCORE;
                         }
                         break;
-                    case ENDOFTURN:
+                    case PLACE_SCORE:
+                        Log.i(TAG, "PLACE_SCORE STATE! ");
+
+                        break;
+                    case END_TURN:
+                        Log.i(TAG, "END TURN STATE! ");
                         //TODO update to server state and get the new player
                         int x = currentGame.getTurnState().getCurrentPlayer();
                         removeLastCurrentPlayersTable(x);
-                        setCurrentPlayersTable(x+1);
+                        setCurrentPlayersTable(x + 1);
                         rollButton.setEnabled(false);
                         break;
                     default:
@@ -247,8 +248,6 @@ public class GameFragment extends Fragment implements Updatable {
         return view;
     }
 
-
-
     //************************************** GRAPHIC/ENGINE CODE BELOW HERE *******************************************************************
 
     private void resetSelectedDice() {
@@ -259,13 +258,14 @@ public class GameFragment extends Fragment implements Updatable {
             }
         }
     }
+
     private void initDice() {
         if (currentGame.getTurnState().getRollTurn() == 0) {
             for (int i = 0; i < diceImages.length; i++) {
                 diceImages[i].setTranslationX(DICE_START_POSITIONX);
                 initDiceAnimation(i);
             }
-        }else {
+        } else {
             firstThrowAllDiceHasLanded = true;
             Random rand = new Random();
             for (int i = 0; i < diceImages.length; i++) {
@@ -277,7 +277,7 @@ public class GameFragment extends Fragment implements Updatable {
         }
     }
 
-    private void initDiceAnimation(int i){
+    private void initDiceAnimation(int i) {
         diceImages[i].setImageResource(R.drawable.roll_dice);
         diceAnim[i] = (AnimationDrawable) diceImages[i].getDrawable();
     }
@@ -351,14 +351,16 @@ public class GameFragment extends Fragment implements Updatable {
     private void updateDiceGraphic() {
         for (int i = 0; i < diceImages.length; i++) {
             if (!dices[i].isSelected() && !firstThrowAllDiceHasLanded) {
-               // dices[i].setDiceValue(dice[i]);
-                dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
+                dices[i].setDiceValue(dice[i]);
+                //  dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             } else if (dices[i].isSelected() && firstThrowAllDiceHasLanded) {
-           //     dices[i].setDiceValue(dice[i]);
-                dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
+                dices[i].setDiceValue(dice[i]);
+                //    dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
-            }else if (firstThrowAllDiceHasLanded){
+            } else if (firstThrowAllDiceHasLanded) {
+                //TODO Bug here
+                Log.i(TAG, "Update graphic: 3" );
                 dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             }
@@ -366,21 +368,254 @@ public class GameFragment extends Fragment implements Updatable {
         firstThrowAllDiceHasLanded = true;
     }
 
+    // When the player selects a dice
     private void selectedDice(short val) {
         if (!dices[val].isRolling() && !dices[val].isSelected()) {
             Log.i(TAG, String.format("%s selected, with value: %d", dices[val].getDiceName(), dices[val].getDiceValue()));
             diceImages[val].setBackground(artEngine.getHighlight());
             dices[val].setSelected(true);
+            if (state == State.PLACE_SCORE) {
+                checkRules();
+            }
         } else {
             diceImages[val].setBackground(null);
             dices[val].setSelected(false);
             Log.i(TAG, String.format("%s deselected!", dices[val].getDiceName()));
+            if (state == State.PLACE_SCORE) {
+                checkRules();
+            }
         }
     }
-    private int getSumSelectedDice(){
-        int sum = 0;
+
+    private void checkRules() {
+        int x = currentGame.getTurnState().getCurrentPlayer();
+        GameRules rules = new GameRules();
+
+        int[] diceRule = new int[5];
+     //    int[] diceRule = {5, 6, 6, 2, 1};
+
         for (int i = 0; i < diceImages.length; i++) {
             if (dices[i].isSelected()) {
+                diceRule[i] = dices[i].getDiceValue();
+            } else {
+                diceRule[i] = -1;
+            }
+        }
+        Arrays.sort(diceRule);
+
+        int ok = getResources().getColor(R.color.colorFieldOK);
+        int notOk = getResources().getColor(R.color.colorFieldNotOK);
+
+        Log.i(TAG, Arrays.toString(diceRule));
+
+        for (int i = 1; i < tables.get(x).getChildCount(); i++) {
+            TableRow row = (TableRow) tables.get(x).getChildAt(i);
+            switch (i) {
+                case 1: // ones
+                    if (rules.singelSide(1,diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 2: // Twos
+                    if (rules.singelSide(2,diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 3: //Threes
+                    if (rules.singelSide(3,diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 4: //Fours
+                    if (rules.singelSide(4,diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 5: //Fives
+                    if (rules.singelSide(5,diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 6: //Six
+                    if (rules.singelSide(6,diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 7: //Sub total
+                    break;
+                case 8: //Bonus
+                    break;
+                case 9: // Pair
+                    if (rules.onePair(diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 10: // Two Pairs
+                    if (rules.twoPair(diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 11: // 3 of a kind
+                    if (rules.threeOfAKind(diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 12: //4 of a kind
+                    if (rules.fourOfAKind(diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 13: // Small Straight
+                    if (rules.smallStraight(diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 14: //Large Straight
+                    if (rules.largeStraight(diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 15: //Full house
+                    if (rules.fullHouse(diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 16: // Chance
+                    break;
+                case 17: //Yatzy
+                    if (rules.yatzy(diceRule)) {
+                        row.setBackgroundColor(ok);
+                        row.setClickable(true);
+                    } else {
+                        row.setBackgroundColor(notOk);
+                        row.setClickable(false);
+                    }
+                    break;
+                case 18: //Grand Total
+                    break;
+                default:
+                    Log.e(TAG, "Problem occurred!");
+                    break;
+            }
+
+        }
+
+    }
+
+    private int calculateScoreValue(int index) {
+        switch (index) {
+            case 1:
+                return getSumSelectedDice(1);
+            case 2:
+                return getSumSelectedDice(2);
+            case 3:
+                return getSumSelectedDice(3);
+            case 4:
+                return getSumSelectedDice(4);
+            case 5:
+                return getSumSelectedDice(5);
+            case 6:
+                return getSumSelectedDice(6);
+            case 7:
+                //                   Log.i(TAG, "Sub total");
+                break;
+            case 8:
+                //                   Log.i(TAG, "Bonus");
+                break;
+            case 9:
+//                    Log.i(TAG, "Pair");
+                break;
+            case 10:
+                //                   Log.i(TAG, "2Pairs");
+                break;
+            case 11:
+                //                  Log.i(TAG, "3 of a kind");
+
+                break;
+            case 12:
+                //                  Log.i(TAG, "4 of a kind");
+
+                break;
+            case 13: //Small straight fixed score: 15;
+                return 15;
+            case 14: //Large straight fixed score: 20;
+                return 20;
+            case 15:
+                //                  Log.i(TAG, "Full House");
+
+                break;
+            case 16:
+                //                  Log.i(TAG, "Chance");
+                break;
+            case 17: // yatzy fixed score: 50
+                return 50;
+            case 18:
+                //                  Log.i(TAG, "Grand Total");
+
+                break;
+            default:
+                Log.e(TAG, "Problem occurred!");
+                break;
+        }
+        return -1;
+    }
+
+    private int getSumSelectedDice(int side) {
+        int sum = 0;
+        for (int i = 0; i < diceImages.length; i++) {
+            if (dices[i].isSelected() && dices[i].getDiceValue() == side) {
                 sum += dices[i].getDiceValue();
             }
         }
@@ -403,7 +638,6 @@ public class GameFragment extends Fragment implements Updatable {
         TableLayout.LayoutParams tableParams = new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.MATCH_PARENT);
         tableParams.weight = 1;
         TableRow.LayoutParams rowParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT);
-
 
         // Loop and create tables for every player in the game
         for (int i = 0; i < currentGame.getPlayerListSize(); i++) {
@@ -438,32 +672,31 @@ public class GameFragment extends Fragment implements Updatable {
 
                 TextView scoreTextField = new TextView(context);
                 scoreTextField.setLayoutParams(rowParams); // TableRow is the parent view
-                scoreTextField.setText(String.valueOf(currentGame.getPlayer(i).getScoreBoardElement(f)));
                 scoreTextField.setGravity(Gravity.CENTER);
+
+                scoreTextField.setText(String.valueOf(currentGame.getPlayer(i).getScoreBoardElement(f)));
                 tableRow.addView(scoreTextField);
 
-                //TODO mechanic to place in correct spot etc
                 //allows you to select a specific row
                 tableRow.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View view) {
-                        TableRow row = (TableRow) view;
-                        int test = tableLayout.indexOfChild(row);
-                        Log.i(TAG, "onClick: " + test);
+                        if (state == State.PLACE_SCORE) {
+                            TableRow row = (TableRow) view;
+                            int tableRowIndex = tableLayout.indexOfChild(row);
 
-                        TextView sample = (TextView) row.getChildAt(0); // only one child (textview)
-                        sample.setText(String.valueOf(getSumSelectedDice()));
-                        scoreHasBeenPlaced = true;
+                            TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
+                            cellText.setText(String.valueOf(calculateScoreValue(tableRowIndex)));
 
-                        if (currentGame.getTurnState().getRollTurn() >= 3) {
+                            scoreHasBeenPlaced = true;
                             rollButton.setEnabled(true);
                             rollButton.setText("OK");
-                            state = State.ENDOFTURN;
+                            state = State.END_TURN;
                         }
-
                     }
                 });
                 tableRow.setClickable(false);
                 // add row to table
+                tableRow.setTag(f);
                 tableLayout.addView(tableRow);
             }
             // add new table in array of tables
@@ -475,24 +708,22 @@ public class GameFragment extends Fragment implements Updatable {
         }
     }
 
-    private void setCurrentPlayersTable(int playerIDIndex){
-        // Makes table(player) 1 (index 0) active for placing score and clickable
-        // tables.get(CURRENT_PLAYER).setBackgroundColor(getResources().getColor(R.color.colorTest));
+    private void setCurrentPlayersTable(int playerIDIndex) {
         tables.get(playerIDIndex).setForeground(getResources().getDrawable(R.drawable.table_border_current_player));
         for (int i = 0; i < tables.get(playerIDIndex).getChildCount(); i++) {
-            TableRow row = (TableRow) tables.get(playerIDIndex).getChildAt(i);
-            row.setClickable(true);
+            // if (i ==)
+            //     TableRow row = (TableRow) tables.get(playerIDIndex).getChildAt(i);
+            //     row.setClickable(true);
         }
     }
 
-    private void removeLastCurrentPlayersTable(int playerIDIndex){
+    private void removeLastCurrentPlayersTable(int playerIDIndex) {
         tables.get(playerIDIndex).setForeground(null);
         for (int i = 0; i < tables.get(playerIDIndex).getChildCount(); i++) {
             TableRow row = (TableRow) tables.get(playerIDIndex).getChildAt(i);
             row.setClickable(false);
         }
     }
-
 
     //************************************** TABLE CODE END HERE *******************************************************************
 
