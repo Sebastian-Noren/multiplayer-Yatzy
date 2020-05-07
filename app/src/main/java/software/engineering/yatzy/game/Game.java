@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Game {
     private int gameID;
     private String gameName;
-    private GameState state;
+    public GameState state;
     private TurnState turnState;
     public ArrayList<Player> playerList;
     private String winnerName;
@@ -88,7 +88,7 @@ public class Game {
 
     public Player getPlayerByName(String nameID) {
         for(Player player : playerList) {
-            if(player.getName() == nameID) {
+            if(player.getName().equals(nameID)) {
                 return player;
             }
         }

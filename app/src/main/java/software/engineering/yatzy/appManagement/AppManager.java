@@ -304,13 +304,6 @@ public class AppManager {
         } else {
             // Notification if not host: hostName has invited you to a game
         }
-
-        for(Game game : gameList) {
-            Log.i(TAG, game.getGameName());
-            for(Player player : game.playerList) {
-                Log.i(TAG, player.getName());
-            }
-        }
     }
 
     // #16
@@ -630,6 +623,15 @@ public class AppManager {
                 }
             }
         }).start();
+    }
+
+    public Game getGameByGameID(int gameID) {
+        for (Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                return game;
+            }
+        }
+        return null;
     }
 
     // =========================== READ FROM CACHE ======================================
