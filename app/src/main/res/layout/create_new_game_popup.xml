@@ -11,6 +11,7 @@
         android:layout_height="48dp"
         android:text="Create New Game Session"
         android:textAlignment="center"
+        android:gravity="center"
         android:textColor="@android:color/white"
         android:textSize="24sp"
         android:textStyle="bold" />
@@ -39,7 +40,7 @@
             android:backgroundTint="@color/colorPrimary"
             android:ems="10"
             android:gravity="center"
-            android:hint="Enter a game name"
+            android:hint="Enter a name, or leave blank"
             android:inputType="textPersonName"
             android:maxLength="20"
             android:textSize="14sp" />
