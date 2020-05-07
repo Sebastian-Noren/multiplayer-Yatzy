@@ -100,7 +100,7 @@ public class AppManager {
         // BIND_AUTO_CREATE: The service will be created if it hasn't already been created
     }
 
-    //MainActivity: onDestroy
+    //MainActivity: onDestroy 
     public void unbindFromService() {
         if (isBound) {
             stopServiceThreads();
@@ -112,8 +112,10 @@ public class AppManager {
     }
 
     public void stopServiceThreads() {
-        networkService.stopConnectionToCloudServer();
-        networkService.serviceShutDown = true;
+        if (isBound) {
+            networkService.stopConnectionToCloudServer();
+            networkService.serviceShutDown = true;
+        }
     }
 
     // Remove later:
@@ -133,32 +135,21 @@ public class AppManager {
             networkService = binder.getService();
             //Indicate that a connection has been successfully established
             isBound = true;
+            appInFocus = true;
+
+            readUserDataFromCache(); // Moved here from Setup Fragment
 
             Log.i(TAG, "App bound to Android service");
-
-            if (firstBind) {
-                //networkService.test(handler);
-                firstBind = false;
-            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             // Will trigger on service connection exception
+            stopServiceThreads();
             Log.i(TAG, "onServiceDisconnected " + isBound + " COUNT " + ccc++);
             isBound = false;
         }
     };
-
-    // ============================ TEST =========================================
-    public volatile int testInt = 0;
-
-    public void update() {
-        if (isBound && appInFocus) {
-            //Utilities.toastMessage(applicationContext, "Android Update " + testInt);
-            // Log.i(TAG, "Android Update " + testInt);
-        }
-    }
 
     // ========================= ADD REQUEST TO SERVER ========================================
 
@@ -224,19 +215,19 @@ public class AppManager {
                     exceptionFromCloud(commands[1]);
                     break;
                 case "41": // Connection to cloud lost/terminated
-                    lostCloudConnection();
+                    lostCloudConnection(commands[1]);
                     break;
                 default:
                     //writeToast("Unknown request from server: " + command);
                     break;
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             Log.i(TAG, "update exception " + e.getMessage(), e);
         }
     }
 
     // #2
-    private void loginResult(String[] commands) throws Exception{
+    private void loginResult(String[] commands) throws Exception {
         Log.i(TAG, "From server: Result of manual login");
         if (commands[1].equals("ok")) {
             // Initiate loggedInUser
@@ -300,7 +291,7 @@ public class AppManager {
         // Create new game and add it to list of games:
         Game newGame = new Game(gameID, gameName, gameState, initialTurnState, playerList, "notDefined", 0);
         gameList.add(newGame);
-        if(appInFocus) {
+        if (appInFocus) {
             currentFragment.update(15, gameID, null);
         } else {
             // Notification if not host: hostName has invited you to a game
@@ -318,7 +309,7 @@ public class AppManager {
         int rollTurn = Integer.parseInt(commands[++count]);
         int rollNr = Integer.parseInt(commands[++count]);
         int[] diceValues = new int[5];
-        for(int i = 0 ; i < diceValues.length ; i++) {
+        for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
         TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
@@ -328,7 +319,7 @@ public class AppManager {
             String nameID = commands[++count];
             PlayerParticipation participation = PlayerParticipation.valueOf(commands[++count]);
             int[] scoreboard = new int[18];
-            for(int i = 0 ; i < scoreboard.length ; i++ ) {
+            for (int i = 0; i < scoreboard.length; i++) {
                 scoreboard[i] = Integer.parseInt(commands[++count]);
             }
             playerList.add(new Player(nameID, participation, scoreboard)); // Initiate
@@ -346,7 +337,7 @@ public class AppManager {
         // Add to global list
         gameList.add(receivedGame);
         // Notify current fragment
-        if(appInFocus) {
+        if (appInFocus) {
             currentFragment.update(16, gameID, null);
         }
 
@@ -361,18 +352,18 @@ public class AppManager {
         int rollTurn = Integer.parseInt(commands[++count]);
         int rollNr = Integer.parseInt(commands[++count]);
         int[] diceValues = new int[5];
-        for(int i = 0 ; i < diceValues.length ; i++) {
+        for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
         TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
-        for(Game game : gameList) {
-            if(game.getGameID() == gameID) {
+        for (Game game : gameList) {
+            if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
                 break;
             }
         }
         // Notify current fragment
-        if(appInFocus) {
+        if (appInFocus) {
             currentFragment.update(18, gameID, null);
         }
     }
@@ -386,7 +377,7 @@ public class AppManager {
         int rollTurn = Integer.parseInt(commands[++count]); // Next player's turn now
         int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
         int[] diceValues = new int[5];
-        for(int i = 0 ; i < diceValues.length ; i++) {
+        for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
         TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
@@ -395,16 +386,16 @@ public class AppManager {
         int scoreboardIndex = Integer.parseInt(commands[++count]);
         int scoreboardValue = Integer.parseInt(commands[++count]);
         // Commit updates
-        for(Game game : gameList) {
-            if(game.getGameID() == gameID) {
+        for (Game game : gameList) {
+            if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
                 game.updateScoreBoard(indexOfPreviousPlayer, scoreboardIndex, scoreboardValue);
-                if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                if (game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
             }
         }
-        if(appInFocus) {
+        if (appInFocus) {
             currentFragment.update(20, gameID, null);
         }
     }
@@ -419,7 +410,7 @@ public class AppManager {
         int rollTurn = Integer.parseInt(commands[++count]); // First player's turn now
         int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
         int[] diceValues = new int[5];
-        for(int i = 0 ; i < diceValues.length ; i++) {
+        for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
         TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
@@ -437,17 +428,17 @@ public class AppManager {
             }
             count++;
         }
-        for(Game game : gameList) {
-            if(game.getGameID() == gameID) {
+        for (Game game : gameList) {
+            if (game.getGameID() == gameID) {
                 game.setState(gameState);
                 game.setTurnState(turnState);
                 game.updatePlayerList(playerList);
-                if(game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                if (game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
             }
         }
-        if(appInFocus) {
+        if (appInFocus) {
             currentFragment.update(21, gameID, null);
         }
     }
@@ -467,15 +458,15 @@ public class AppManager {
         String winnerName = commands[++count];
         int winnerScore = Integer.parseInt(commands[++count]);
         // Commit updates
-        for(Game game : gameList) {
-            if(game.getGameID() == gameID) {
+        for (Game game : gameList) {
+            if (game.getGameID() == gameID) {
                 game.setState(gameState);
                 game.updateScoreBoard(indexOfLastPlayer, scoreboardIndex, scoreboardValue);
                 game.setWinnerName(winnerName);
                 game.setWinnerScore(winnerScore);
             }
         }
-        if(appInFocus) {
+        if (appInFocus) {
             currentFragment.update(22, gameID, null);
         } else {
             // Notification: winnerName won game gameName (XXXp)
@@ -486,7 +477,7 @@ public class AppManager {
     private void updateIndividualHighScore(String highScore) throws Exception {
         Log.i(TAG, "From server: Update of this player's high score");
         loggedInUser.highScore = Integer.parseInt(highScore);
-        if(appInFocus) {
+        if (appInFocus) {
             currentFragment.update(23, -1, null);
         }
     }
@@ -517,8 +508,8 @@ public class AppManager {
         Log.i(TAG, "From server: Result of invitation reply");
         int gameID = Integer.parseInt(commands[1]);
         PlayerParticipation participation = PlayerParticipation.valueOf(commands[2]);
-        for(Game game : gameList) {
-            if(game.getGameID() == gameID) {
+        for (Game game : gameList) {
+            if (game.getGameID() == gameID) {
                 game.getPlayerByName(loggedInUser.getNameID()).participation = participation;
             }
         }
@@ -536,14 +527,20 @@ public class AppManager {
     }
 
     // #41
-    private void lostCloudConnection() {
-        Log.i(TAG, "Lost server connection");
-        //writeToast("No cloud connection");
-        // getSupportActionBar().hide();
-        if (loginAttemptWithSessionKey) {
-            //fragmentTransaction("login");
-        } else {
-            //fragmentTransaction("setup");
+    private void lostCloudConnection(String cause) {
+        gameList.clear();
+        universalHighScores.clear();
+
+        Log.i(TAG, "#41: Attempt to regain server connection");
+
+        boolean unintendedClose = cause.equals("unintended");
+        if(unintendedClose) {
+            if(isBound) {
+                stopServiceThreads();
+                readUserDataFromCache();
+            } else {
+                bindToService(applicationContext, navController);
+            }
         }
     }
 
@@ -628,7 +625,7 @@ public class AppManager {
 
     public Game getGameByGameID(int gameID) {
         for (Game game : gameList) {
-            if(game.getGameID() == gameID) {
+            if (game.getGameID() == gameID) {
                 return game;
             }
         }
@@ -650,26 +647,41 @@ public class AppManager {
                 boolean successfulCacheRead = false;
                 String message = "";
 
-                try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(new File(applicationContext.getCacheDir() + "userdata")))) {
-                    //Reads from "file" and casts to LoggedInUser-object.
-                    loggedInUser = (LoggedInUser) objectInputStream.readObject();
-                    //Retrieves information needed to reconnect.
-                    String userName = loggedInUser.getNameID();
-                    String sessionKey = loggedInUser.getSessionKey();
-                    if (userName.equals("")) {
-                        throw new FileNotFoundException("Cache content erased");
-                    } else {
-                        message = "4:" + userName + ":" + sessionKey;
-                        successfulCacheRead = true;
+                for (int attempt = 0; attempt < 4; attempt++) {
+                    try {
+                        Thread.sleep(750);
+
+                        if (isBound) {
+                            try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(new File(applicationContext.getCacheDir() + "userdata")))) {
+                                //Reads from "file" and casts to LoggedInUser-object.
+                                loggedInUser = (LoggedInUser) objectInputStream.readObject();
+                                //Retrieves information needed to reconnect.
+                                String userName = loggedInUser.getNameID();
+                                String sessionKey = loggedInUser.getSessionKey();
+                                if (userName.equals("")) {
+                                    throw new FileNotFoundException("Cache content erased");
+                                } else {
+                                    message = "4:" + userName + ":" + sessionKey;
+                                    successfulCacheRead = true;
+                                }
+                            } catch (FileNotFoundException e) {
+                                message = "Cache history empty";
+                            } catch (IOException e) {
+                                message = "Failed Setup Stream";
+                            } catch (ClassNotFoundException e) {
+                                message = "File empty, Log In";
+                            } finally {
+                                postResult(successfulCacheRead, message);
+                            }
+                            break;
+                        }
+                    } catch (InterruptedException e) {
+                        // Ignore
                     }
-                } catch (FileNotFoundException e) {
-                    message = "Cache history empty";
-                } catch (IOException e) {
-                    message = "Failed Setup Stream";
-                } catch (ClassNotFoundException e) {
-                    message = "File empty, Log In";
-                } finally {
-                    postResult(successfulCacheRead, message);
+                    if (attempt == 3) {
+                        postResult(false, "Unable to access cache");
+                        break;
+                    }
                 }
             }
 
