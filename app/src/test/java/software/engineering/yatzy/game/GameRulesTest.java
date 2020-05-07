@@ -1,13 +1,20 @@
 package software.engineering.yatzy.game;
 
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.Arrays;
 
-public class GameRules {
+import static org.junit.Assert.*;
 
-    //Stor stege
-    public boolean largeStraight(int[] dice) {
+public class GameRulesTest {
+    int[] dice = {1, 6, 6, 1, 1};
+
+    @Test
+    public void largeStraight() {
+        Arrays.sort(dice);
         boolean isStraight = false;
-
         if (((dice[0] == 2) &&
                 (dice[1] == 3) &&
                 (dice[2] == 4) &&
@@ -15,13 +22,15 @@ public class GameRules {
                 (dice[4] == 6))) {
             isStraight = true;
         }
-        return isStraight;
+
+        assertTrue(isStraight);
+
     }
 
-    // liten stege
-    public boolean smallStraight(int[] dice) {
+    @Test
+    public void smallStraight() {
+        Arrays.sort(dice);
         boolean isStraight = false;
-
         if (((dice[0] == 1) &&
                 (dice[1] == 2) &&
                 (dice[2] == 3) &&
@@ -29,11 +38,12 @@ public class GameRules {
                 (dice[4] == 5))) {
             isStraight = true;
         }
-        return isStraight;
+        assertTrue(isStraight);
     }
 
-    //KÅK
-    public boolean fullHouse(int[] dice) {
+    @Test
+    public void fullHouse() {
+        Arrays.sort(dice);
         boolean isFullHouse = false;
         if ((((dice[0] == dice[1]) && (dice[1] == dice[2])) && (dice[3] == dice[4])
                 && (dice[2] != dice[3])) ||
@@ -41,15 +51,16 @@ public class GameRules {
                         && (dice[1] != dice[2]))) {
             isFullHouse = true;
         }
-        return isFullHouse;
+        assertTrue(isFullHouse);
     }
 
-    public boolean yatzy( int[] dice ) {
+    @Test
+    public void yatzy() {
         boolean yatzy = false;
-        for( int i = 1; i <= 6; i++ ) {
+        for (int i = 1; i <= 6; i++) {
             int count = 0;
-            for( int j = 0; j < 5; j++ ) {
-                if( dice[j] == i ) {
+            for (int j = 0; j < 5; j++) {
+                if (dice[j] == i) {
                     count++;
                 }
                 if ((count > 4)){
@@ -57,11 +68,11 @@ public class GameRules {
                 }
             }
         }
-        return yatzy;
+        assertTrue(yatzy);
     }
 
-    // triss
-    public boolean threeOfAKind(int[] dice) {
+    @Test
+    public void threeOfAKind() {
         boolean threeDice = false;
         for (int i = 1; i <= 6; i++) {
             int count = 0;
@@ -74,11 +85,11 @@ public class GameRules {
                 }
             }
         }
-        return threeDice;
+        assertTrue(threeDice);
     }
 
-    // fyrpar
-    public boolean fourOfAKind(int[] dice) {
+    @Test
+    public void fourOfAKind() {
         boolean fourDice = false;
         for (int i = 1; i <= 6; i++) {
             int count = 0;
@@ -91,10 +102,11 @@ public class GameRules {
                 }
             }
         }
-        return fourDice;
+        assertTrue(fourDice);
     }
 
-    public boolean onePair(int[] dice) {
+    @Test
+    public void onePair() {
         boolean isOnePar = false;
         for (int i = 1; i <= 6; i++) {
             int count = 0;
@@ -102,13 +114,18 @@ public class GameRules {
                 if (dice[j] == i) {
                     count++;
                 }
-                isOnePar = (count > 1);
+                if ((count > 1)){
+                    isOnePar = true;
+                }
             }
         }
-        return isOnePar;
+        assertTrue(isOnePar);
     }
 
-    public boolean twoPair(int[] dice) {
+    @Test
+    public void twoPair() {
+        Arrays.sort(dice);
+        System.out.println(Arrays.toString(dice));
         boolean isTwoPair = false;
         if (((dice[0] == dice[1]) && (dice[2] == dice[3])) ||
                 ((dice[1] == dice[2]) && (dice[3] == dice[4]) && dice[2] !=dice[3]) ||
@@ -116,16 +133,18 @@ public class GameRules {
         ) {
             isTwoPair = true;
         }
-        return isTwoPair;
+        assertTrue(isTwoPair);
     }
 
-    public boolean singelSide(int diceSide, int[] dice) {
+    @Test
+    public void singelSide() {
+        int diceSide = 1;
+        boolean isthisSide = false;
         for (int die : dice) {
             if (die == diceSide) {
-                return true;
+                isthisSide = true;
             }
         }
-        return false;
+        assertTrue(isthisSide);
     }
-
 }

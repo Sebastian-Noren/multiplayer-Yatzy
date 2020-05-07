@@ -216,6 +216,7 @@ public class AppManager {
                     break;
                 case "31":
                     searchableClientNames(Arrays.copyOfRange(commands, 1, commands.length));
+                    break;
                 case "34":
                     updateInvitationReply(commands);
                     break;
