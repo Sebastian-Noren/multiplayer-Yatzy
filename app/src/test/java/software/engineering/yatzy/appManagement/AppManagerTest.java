@@ -52,8 +52,8 @@ public class AppManagerTest {
     }
 
     @Test
+    // Testing the pass-by-reference qualities of getGameByID()
     public void testGetGameByID() {
-        // Testing the pass-by-reference qualities of getGameByID()
         AppManager.getInstance().update(newGame);
         AppManager.getInstance().loggedInUser = loggedInUser;
 

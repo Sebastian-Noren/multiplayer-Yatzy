@@ -19,7 +19,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // UNCOMMENT LATER:
         AppManager.getInstance().bindToService(getApplicationContext(), Navigation.findNavController(Objects.requireNonNull(this), R.id.nav_host_fragment));
     }
 
@@ -63,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(TAG, "MainActivity: In the onDestroy() event");
 
-        // UNCOMMENT LATER
         AppManager.getInstance().unbindFromService();
     }
 
