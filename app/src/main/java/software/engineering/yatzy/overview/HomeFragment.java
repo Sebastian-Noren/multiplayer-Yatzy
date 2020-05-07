@@ -41,7 +41,6 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     private OvershootInterpolator interpolator = new OvershootInterpolator();
     private GameOverviewAdapter gameAdapter;
     private ArrayList<Room> gameSessionLists = new ArrayList<>();
-    private int roomID = 0;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
@@ -182,7 +181,6 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     @Override
     public void saveComplete(String gameName, String host, ArrayList<String> listOfInvitedPlayers ) {
         AppManager.getInstance().currentFragment = this;
-        Log.i(TAG, "saveComplete: " + AppManager.getInstance().currentFragment.toString());
         String players = "";
         for (int i = 0; i < listOfInvitedPlayers.size() ; i++) {
             players = players.concat(":"+ listOfInvitedPlayers.get(i));
