@@ -45,15 +45,12 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
     private short counter = 0;
 
     private OnSelectedInput onSelectedInput;
-    //TODO 5. Make so string input are safe
-
 
     @Override
     public void update(int protocolIndex, int specifier, String exceptionMessage) {
 
         switch (protocolIndex) {
             case 31:
-                //TODO Add so server update
                 initSearchList();
                 break;
             case 40:
@@ -126,14 +123,19 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
             public void onClick(View v) {
                 Log.i(tag, "Save clicked");
                 String gameName = inputGameName.getText().toString().trim();
-                ArrayList<String> listPlayers = new ArrayList<>();
-                for (Player players : invitedPlayerList) {
-                    listPlayers.add(players.getName());
+                boolean ok = checkString(gameName);
+                if (ok) {
+                    ArrayList<String> listPlayers = new ArrayList<>();
+                    for (Player players : invitedPlayerList) {
+                        listPlayers.add(players.getName());
+                    }
+                    Utilities.hideSoftKeyboard(getActivity());
+                    getDialog().dismiss();
+                    //Send data to HomeFragment
+                    onSelectedInput.saveComplete(gameName, host, listPlayers);
+                }else {
+                    Utilities.toastMessage(getContext(),"Special characters not allowed!");
                 }
-                Utilities.hideSoftKeyboard(getActivity());
-                getDialog().dismiss();
-                //Send data to HomeFragment
-                onSelectedInput.saveComplete(gameName, host, listPlayers);
             }
         });
 
@@ -159,6 +161,9 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
         super.onAttach(context);
     }
 
+    private  boolean checkString(String playerName){
+        return !playerName.contains(":");
+    }
 
     private void addPlayerToInvite(String invitedPlayer) {
         invitedPlayerList.add(new Player(invitedPlayer));
