@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import software.engineering.yatzy.R;
-import software.engineering.yatzy.Utilities;
 import software.engineering.yatzy.game.Game;
 import software.engineering.yatzy.game.GameState;
 import software.engineering.yatzy.game.Player;
@@ -47,7 +46,7 @@ public class AppManager {
     private Handler handler;
     // Holds a reference to the fragment currently displayed
     public Updatable currentFragment;
-    //private MainActivity mainActivity;
+    // Reference to application context;
     private Context applicationContext;
     // To recognize a socket exception due to invalid sessionKey vs invalid login
     private boolean loginAttemptWithSessionKey;
@@ -62,6 +61,8 @@ public class AppManager {
     public ArrayList<Game> gameList;
     // Top 3 high score names and scores.
     public ArrayList<HighScoreRecord> universalHighScores;
+    // Searchable client names for creating new game
+    public ArrayList<String> searchableNames;
 
     // ============================ SINGLETON =======================================
 
@@ -75,6 +76,7 @@ public class AppManager {
         currentFragment = null;
         gameList = new ArrayList<>();
         universalHighScores = new ArrayList<>();
+        searchableNames = new ArrayList<>();
     }
 
     private static AppManager instance = null;
@@ -213,6 +215,9 @@ public class AppManager {
                 case "24":
                     updateUniversalHighScoreList(Arrays.copyOfRange(commands, 1, 7));
                     break;
+                case "31":
+                    searchableClientNames(Arrays.copyOfRange(commands, 1, commands.length));
+                    break;
                 case "34":
                     updateInvitationReply(commands);
                     break;
@@ -331,7 +336,7 @@ public class AppManager {
             if (commands[++count].equals("null")) {
                 break;
             }
-            count++;
+            //count++; ??
         }
         // Remaining data:
         GameState gameState = GameState.valueOf(commands[++count]);
@@ -499,10 +504,28 @@ public class AppManager {
         }
     }
 
+    // #31
+    private void searchableClientNames(String[] commands) throws Exception {
+        searchableNames.clear();
+        searchableNames.addAll(Arrays.asList(commands));
+        if (appInFocus) {
+            currentFragment.update(31, -1, null);
+        }
+    }
+
     // #34
-    private void updateInvitationReply(String[] commands) throws NumberFormatException {
-        Log.i(TAG, "From server: A player has replied to a game invitation");
-        // Implement
+    private void updateInvitationReply(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Result of invitation reply");
+        int gameID = Integer.parseInt(commands[1]);
+        PlayerParticipation participation = PlayerParticipation.valueOf(commands[2]);
+        for(Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                game.getPlayerByName(loggedInUser.getNameID()).participation = participation;
+            }
+        }
+        if (appInFocus) {
+            currentFragment.update(34, gameID, null);
+        }
     }
 
     // #40
@@ -602,6 +625,15 @@ public class AppManager {
                 }
             }
         }).start();
+    }
+
+    public Game getGameByGameID(int gameID) {
+        for (Game game : gameList) {
+            if(game.getGameID() == gameID) {
+                return game;
+            }
+        }
+        return null;
     }
 
     // =========================== READ FROM CACHE ======================================

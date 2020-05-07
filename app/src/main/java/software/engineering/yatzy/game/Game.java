@@ -5,9 +5,9 @@ import java.util.ArrayList;
 public class Game {
     private int gameID;
     private String gameName;
-    private GameState state;
+    public GameState state;
     private TurnState turnState;
-    private ArrayList<Player> playerList;
+    public ArrayList<Player> playerList;
     private String winnerName;
     private int winnerScore;
     private int playerListSize;
@@ -86,8 +86,30 @@ public class Game {
         return playerList.get(index);
     }
 
+    public Player getPlayerByName(String nameID) {
+        for(Player player : playerList) {
+            if(player.getName().equals(nameID)) {
+                return player;
+            }
+        }
+        return  null;
+    }
+
     public int getPlayerListSize(){
         return playerList.size();
     }
 
+    @Override
+    public String toString() {
+        return "Game{" +
+                "gameID=" + gameID +
+                ", gameName='" + gameName + '\'' +
+                ", state=" + state +
+                ", turnState=" + turnState +
+                ", playerList=" + playerList +
+                ", winnerName='" + winnerName + '\'' +
+                ", winnerScore=" + winnerScore +
+                ", playerListSize=" + playerListSize +
+                '}';
+    }
 }

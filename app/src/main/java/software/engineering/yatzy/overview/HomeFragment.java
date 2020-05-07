@@ -1,8 +1,6 @@
 package software.engineering.yatzy.overview;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +11,7 @@ import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -24,26 +23,30 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.appManagement.AppManager;
+import software.engineering.yatzy.appManagement.Updatable;
+import software.engineering.yatzy.game.Game;
 import software.engineering.yatzy.overview.create_game.CreateGameDialog;
 import software.engineering.yatzy.overview.join_game.JoinGameDialog;
 
-public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput {
+public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput, Updatable {
 
     private static final String TAG = "Info";
     private NavController navController;
     private FloatingActionButton fabStart, fabCreateGame, fabInvite;
     private TextView textCreateGame, textFabInvite;
-    private float translationY = 100f;
+    private float translationYX = 100f;
     private boolean isMenuOpen = false;
     private RecyclerView recyclerView;
     private OvershootInterpolator interpolator = new OvershootInterpolator();
     private GameOverviewAdapter gameAdapter;
     private ArrayList<Room> gameSessionLists = new ArrayList<>();
-    private int roomID = 0;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         Log.d(TAG, "In the HomeFragment");
+        AppManager.getInstance().currentFragment = this;
+        Log.i(TAG, "Oncreate: " + AppManager.getInstance().currentFragment.toString());
         init(view);
 
         //Main button
@@ -99,6 +102,20 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         gameSessionLists.add(new Room("Room 1","4 players","Ongoing",1));
         gameSessionLists.add(new Room("Game 2", "Monkey was the winner","Finished",2));
 
+        for (int i = 0; i < AppManager.getInstance().gameList.size() ; i++) {
+            String gameRoom =  AppManager.getInstance().gameList.get(i).getGameName();
+            String gameState = AppManager.getInstance().gameList.get(i).getState().toString();
+            int roomId = AppManager.getInstance().gameList.get(i).getGameID();
+            String description = "A real game";
+            gameSessionLists.add(new Room(gameRoom,description,gameState,roomId));
+        }
+
+//        String gameRoom =  AppManager.getInstance().gameList.get(0).getGameName();
+//        String gameState = AppManager.getInstance().gameList.get(0).getState().toString();
+//        int roomId = AppManager.getInstance().gameList.get(0).getGameID();
+//        String description = "A real game";
+//        gameSessionLists.add(new Room(gameRoom,description,gameState,roomId));
+
         gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
         recyclerView.setAdapter(gameAdapter);
 
@@ -116,10 +133,10 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         textCreateGame.setAlpha(0f);
         fabCreateGame.setEnabled(false);
 
-        fabCreateGame.setTranslationY(translationY);
-        textCreateGame.setTranslationY(translationY);
-        fabInvite.setTranslationX(translationY);
-        textFabInvite.setTranslationX(translationY);
+        fabCreateGame.setTranslationY(translationYX);
+        textCreateGame.setTranslationY(translationYX);
+        fabInvite.setTranslationX(translationYX);
+        textFabInvite.setTranslationX(translationYX);
     }
 
     private void openMenu() {
@@ -138,11 +155,11 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         isMenuOpen = !isMenuOpen;
         fabCreateGame.setEnabled(false);
         fabStart.animate().rotation(0f).setInterpolator(interpolator).setDuration(300).start();
-        fabCreateGame.animate().translationY(translationY).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
-        textCreateGame.animate().translationY(translationY).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
+        fabCreateGame.animate().translationY(translationYX).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
+        textCreateGame.animate().translationY(translationYX).alpha(0f).setInterpolator(interpolator).setDuration(500).start();
 
-        fabInvite.animate().translationX(translationY).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
-        textFabInvite.animate().translationX(translationY).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
+        fabInvite.animate().translationX(translationYX).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
+        textFabInvite.animate().translationX(translationYX).alpha(0f).setInterpolator(interpolator).setDuration(300).start();
         fabInvite.setEnabled(false);
     }
 
@@ -159,6 +176,54 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         createGameDialog.getDialog();
         createGameDialog.setTargetFragment(this, 1);
         createGameDialog.show(Objects.requireNonNull(getFragmentManager()), "createGame");
+    }
+
+    @Override
+    public void saveComplete(String gameName, String host, ArrayList<String> listOfInvitedPlayers ) {
+        AppManager.getInstance().currentFragment = this;
+        String players = "";
+        for (int i = 0; i < listOfInvitedPlayers.size() ; i++) {
+            players = players.concat(":"+ listOfInvitedPlayers.get(i));
+        }
+        String createGameRequest = MessageFormat.format("32:{0}{1}", gameName, players);
+        AppManager.getInstance().addClientRequest(createGameRequest);
+
+    }
+
+    @Override
+    public void update(int protocolIndex, int gameID, String exceptionMessage) {
+        switch (protocolIndex) {
+            case 15:
+            case 16:
+                String gameRoom =  "";
+                String gameState = "";
+                int roomId = 0;
+                String description = "";
+                for (Game game: AppManager.getInstance().gameList) {
+                    if (game.getGameID() == gameID){
+                        gameRoom =  game.getGameName();
+                        gameState = game.getState().toString();
+                        roomId = game.getGameID();
+                        description = "A game from server"; // TODO lös något
+                        break;
+                    }
+                }
+                Room room = new Room(gameRoom,description,gameState,roomId);
+                Log.e(TAG, "update: " + room.toString() );
+                gameSessionLists.add(new Room(gameRoom,description,gameState,roomId));
+                Log.e(TAG, "update: " + gameSessionLists.toString() );
+
+              //  gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
+               // recyclerView.setAdapter(gameAdapter);
+                gameAdapter.notifyDataSetChanged();
+                break;
+            case 40:
+                Log.e(TAG, exceptionMessage);
+                break;
+            default:
+                Log.d(TAG, "Unknown request from server...");
+                break;
+        }
     }
 
     @Override
@@ -185,24 +250,28 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "HomeFragment: In the onActivityCreated() event");
     }
+
     //5
     @Override
     public void onStart() {
         super.onStart();
         Log.d(TAG, "HomeFragment: In the onStart() event");
     }
+
     //6
     @Override
     public void onResume() {
         super.onResume();
         Log.d(TAG, "HomeFragment: In the onResume() event");
     }
+
     //7
     @Override
     public void onPause() {
         super.onPause();
         Log.d(TAG, "HomeFragment: In the onPause() event");
     }
+
     //8
     @Override
     public void onStop() {
@@ -216,6 +285,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         super.onDestroy();
         Log.d(TAG, "HomeFragment: In the onDestroy() event");
     }
+
     //11
     @Override
     public void onDetach() {
@@ -223,12 +293,4 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         Log.d(TAG, "HomeFragment: In the onDetach() event");
     }
 
-
-    @Override
-    public void saveComplete(String gameName, String host, ArrayList<String> listOfInvitedPlayers ) {
-        //TODO send data to server
-        Log.i(TAG, String.format("saveComplete: %s Host: %s list of players: %s", gameName, host, listOfInvitedPlayers.toString()));
-        gameSessionLists.add(new Room(gameName, "notes","Ongoing",++roomID));
-        gameAdapter.notifyDataSetChanged();
-    }
 }
