@@ -35,8 +35,8 @@ import software.engineering.yatzy.game.TurnState;
 
 public class AppManager {
 
-   // private static final String TAG = "Network AppManager";
-   private static final String TAG = "Info";
+    // private static final String TAG = "Network AppManager";
+    private static final String TAG = "Info";
     // Service. UI thread -> Service
     private NetworkService networkService;
     // Guide UI in case of being put in background during cloud connection phase
@@ -252,7 +252,7 @@ public class AppManager {
             }
         } else {
             // Pass exception message to Login fragment
-            if(appInFocus) {
+            if (appInFocus) {
                 currentFragment.update(40, -1, commands[2]);
             }
         }
@@ -493,7 +493,7 @@ public class AppManager {
         Log.i(TAG, "From server: Update of this player's game stats");
         loggedInUser.gamesPlayed = Integer.parseInt(commands[1]);
         boolean newIndividualHighScore = commands[2].equals("new");
-        if(newIndividualHighScore) {
+        if (newIndividualHighScore) {
             loggedInUser.highScore = Integer.parseInt(commands[3]);
         }
         if (appInFocus) {
@@ -528,9 +528,9 @@ public class AppManager {
         int gameID = Integer.parseInt(commands[1]);
         PlayerParticipation participation = PlayerParticipation.valueOf(commands[2]);
 
-        for (int game = 0 ; game < gameList.size() ; game++) {
-            if(gameList.get(game).getGameID() == gameID) {
-                if(participation == PlayerParticipation.DECLINED) {
+        for (int game = 0; game < gameList.size(); game++) {
+            if (gameList.get(game).getGameID() == gameID) {
+                if (participation == PlayerParticipation.DECLINED) {
                     gameList.remove(game);
                 } else {
                     gameList.get(game).getPlayerByName(loggedInUser.getNameID()).participation = participation;
@@ -556,13 +556,14 @@ public class AppManager {
         gameList.clear();
         universalHighScores.clear();
 
-        Log.i(TAG, "#41: Attempt to regain server connection");
-
         boolean unintendedClose = cause.equals("unintended");
-        if(unintendedClose) {
-            if(isBound) {
-                stopServiceThreads();
-                readUserDataFromCache();
+        Log.i(TAG, "#41: Connection lost: " + (unintendedClose ? "Unintended" : "Intended") + ". Attempt to regain server connection");
+        if (unintendedClose) {
+            if (networkState == NetworkState.ALLOWED || networkState == NetworkState.ENTERED) {
+                if (isBound) {
+                    stopServiceThreads();
+                    readUserDataFromCache();
+                }
             } else {
                 bindToService(applicationContext, navController);
             }
