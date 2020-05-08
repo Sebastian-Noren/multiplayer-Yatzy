@@ -54,6 +54,9 @@ public class GameFragment extends Fragment implements Updatable {
     private ImageButton soundButton, chatButton;
     private ConstraintLayout chatLayoutFrame;
     private boolean isChatOpen = false;
+    private String requestToServer;
+    private int tableRowIndex;
+    private int lastplayer;
 
     private Dice[] dices = {new Dice(DiceName.DICE1, true, 0, false), new Dice(DiceName.DICE2, true, 0, false),
             new Dice(DiceName.DICE3, true, 0, false), new Dice(DiceName.DICE4, true, 0, false),
@@ -71,6 +74,34 @@ public class GameFragment extends Fragment implements Updatable {
     @Override
     public void update(int protocolIndex, int specifier, String exceptionMessage) {
         switch (protocolIndex) {
+            case 18:
+                if (specifier == currentGame.getGameID()){
+                    currentGame.setTurnState(AppManager.getInstance().getGameByGameID(specifier).getTurnState());
+                    lastplayer = currentGame.getTurnState().getCurrentPlayer();
+                    Log.e(TAG, "onCreateView: " + currentGame.toString());
+                    resetSelectedDice();
+                    rollAgainDiceAnimation();
+                    turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn()+1)));
+                }
+                break;
+            case 20:
+                if (specifier == currentGame.getGameID()){
+                    Log.i(TAG,String.valueOf(lastplayer));
+
+                    for (int i = 1; i < tables.get(lastplayer).getChildCount(); i++) {
+                        TableRow row = (TableRow) tables.get(lastplayer).getChildAt(i);
+                        TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
+                        cellText.setText(String.valueOf(currentGame.getPlayer(lastplayer).getScoreBoardElement(i-1)));
+                    }
+                    removeLastCurrentPlayersTable(lastplayer);
+                    currentGame.setTurnState(AppManager.getInstance().getGameByGameID(specifier).getTurnState());
+                    setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
+                    Log.e(TAG, "onCreateView: " + currentGame.toString());
+                    turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
+
+                }
+
+                break;
             case 40:
                 Log.e(TAG, exceptionMessage);
                 break;
@@ -92,22 +123,11 @@ public class GameFragment extends Fragment implements Updatable {
         soundEngine.createApplicationSound();
         soundEngine.createGameBgSound();
 
-        //Bug testing
-        ///***********************FAKE GAME***********************
-        int[] scoreboardTest = new int[SCOREBOARD_SIZE];
-        ArrayList<Player> mockPlayers = new ArrayList<>();
-        mockPlayers.add(new Player("Ali", PlayerParticipation.HOST, scoreboardTest));
-        mockPlayers.add(new Player("Seb", PlayerParticipation.ACCEPTED, scoreboardTest));
-        mockPlayers.add(new Player("Anton", PlayerParticipation.ACCEPTED, scoreboardTest));
-        ArrayList<Game> games = new ArrayList<>();
-        games.add(new Game(1, "GameTest", GameState.ONGOING, new TurnState(0, 0, new int[]{2, 6, 1, 6, 4}), mockPlayers, "", 0));
-        ///****************************************************
-
         //Get the game user clicked on and get it from games list.
         gameIndex = getArguments().getInt("gameToPlay");
         currentGame = AppManager.getInstance().gameList.get(gameIndex);
         Log.e(TAG, "onCreateView: " + currentGame.toString());
-
+        AppManager.getInstance().currentFragment = this;
         // set current playing state
         if (currentGame.getTurnState().getRollTurn() == 0) {
             state = State.NEWPLAYER;
@@ -127,26 +147,26 @@ public class GameFragment extends Fragment implements Updatable {
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "Rolling dice! ");
-                turn = currentGame.getTurnState().getRollTurn();
                 soundEngine.buttonClick();
                // dice = diceRollAlgorithm();
                 Log.e(TAG, "Dice value: " + Arrays.toString(dice));
                 switch (state) {
                     case NEWPLAYER:
                         Log.i(TAG, "NEW PLAYER STATE! ");
+                     //   turn = currentGame.getTurnState().getRollTurn();
                         startFirstDiceAnimation();
-                        turn++;
-                        currentGame.getTurnState().setRollTurn(turn);
-                        turnStateText.setText(MessageFormat.format("{0}/3", turn));
+                      //  turn++;
+                        turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn()+1)));
                         break;
                     case PLAYING:
                         Log.i(TAG, "PLAYING STATE! ");
-                        resetSelectedDice();
-                        rollAgainDiceAnimation();
-                        turn++;
-                        currentGame.getTurnState().setRollTurn(turn);
-                        turnStateText.setText(MessageFormat.format("{0}/3", turn));
-
+                        StringBuilder rollturnRequest = new StringBuilder("17:" + currentGame.getGameID());
+                        for (int i = 0; i < diceImages.length; i++) {
+                            if (dices[i].isSelected()) {
+                                rollturnRequest.append(MessageFormat.format(":{0}", i));
+                            }
+                        }
+                        AppManager.getInstance().addClientRequest(rollturnRequest.toString().trim());
                         break;
                     case PLACE_SCORE:
                         Log.i(TAG, "PLACE_SCORE STATE! ");
@@ -154,11 +174,8 @@ public class GameFragment extends Fragment implements Updatable {
                         break;
                     case END_TURN:
                         Log.i(TAG, "END TURN STATE! ");
+                        AppManager.getInstance().addClientRequest(requestToServer);
                         deselectAllDice();
-                        //TODO update to server state and get the new player
-                        int x = currentGame.getTurnState().getCurrentPlayer();
-                        removeLastCurrentPlayersTable(x);
-                        setCurrentPlayersTable(x + 1);
                         rollButton.setEnabled(false);
                         break;
                     default:
@@ -327,7 +344,7 @@ public class GameFragment extends Fragment implements Updatable {
                 deselectAllDice();
                 rollButton.setEnabled(true);
                 //When 3 turns ends and move to another player
-                if (turn >= 3 && !scoreHasBeenPlaced) {
+                if (currentGame.getTurnState().getRollTurn() > 1 && !scoreHasBeenPlaced) {
                     rollButton.setEnabled(false);
                     state = State.PLACE_SCORE;
                     Log.i(TAG, "Init State: " + state);
@@ -357,7 +374,6 @@ public class GameFragment extends Fragment implements Updatable {
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             } else if (dices[i].isSelected() && state == State.PLAYING) {
                 Log.i(TAG, "Update graphic: 2");
-               // dices[i].setDiceValue(dice[i]);
                 dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             }
@@ -698,11 +714,14 @@ public class GameFragment extends Fragment implements Updatable {
                     public void onClick(View view) {
                         if (state == State.PLACE_SCORE) {
                             TableRow row = (TableRow) view;
-                            int tableRowIndex = tableLayout.indexOfChild(row);
+                            tableRowIndex = tableLayout.indexOfChild(row);
+
+                            String value = String.valueOf(calculateScoreValue(tableRowIndex));
+                            String index = String.valueOf(tableRowIndex-1);
+                            requestToServer = MessageFormat.format("19:{0}:{1}:{2}", currentGame.getGameID(), index, value);
 
                             TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
                             cellText.setText(String.valueOf(calculateScoreValue(tableRowIndex)));
-
                             scoreHasBeenPlaced = true;
                             rollButton.setEnabled(true);
                             rollButton.setText("OK");
