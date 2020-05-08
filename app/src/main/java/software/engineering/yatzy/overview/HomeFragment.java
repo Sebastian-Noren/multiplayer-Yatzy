@@ -113,7 +113,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         //TODO remove, will be based on a real arraylist later.
-        gameSessionLists.add(new Room("Room 1", "4 players", "Ongoing", 1));
+       // gameSessionLists.add(new Room("Room 1", "4 players", "Ongoing", 1));
 
         inviteCounter = 0;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
