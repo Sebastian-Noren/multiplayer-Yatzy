@@ -28,6 +28,7 @@ import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.appManagement.Updatable;
 import software.engineering.yatzy.game.Game;
 import software.engineering.yatzy.game.GameState;
+import software.engineering.yatzy.game.PlayerParticipation;
 import software.engineering.yatzy.overview.create_game.CreateGameDialog;
 import software.engineering.yatzy.overview.join_game.JoinGameDialog;
 
@@ -45,12 +46,14 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     private GameOverviewAdapter gameAdapter;
     private ArrayList<software.engineering.yatzy.overview.Room> gameSessionLists = new ArrayList<>();
     private int inviteCounter;
+    private String accountName;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         Log.d(TAG, "In the HomeFragment");
         AppManager.getInstance().currentFragment = this;
         Log.i(TAG, "Oncreate: " + AppManager.getInstance().currentFragment.toString());
+        accountName = AppManager.getInstance().loggedInUser.getNameID();
         init(view);
 
         //Main button
@@ -114,7 +117,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
 
         inviteCounter = 0;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
-            boolean pending = AppManager.getInstance().gameList.get(i).getState() == GameState.PENDING;
+            boolean pending = AppManager.getInstance().gameList.get(i).getPlayerByName(accountName).participation == PlayerParticipation.PENDING;
             if (!pending) {
                 String gameRoom = AppManager.getInstance().gameList.get(i).getGameName();
                 String gameState = AppManager.getInstance().gameList.get(i).getState().toString();
@@ -203,7 +206,6 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         //Send request to server
         String createGameRequest = MessageFormat.format("32:{0}{1}", gameName, players);
         AppManager.getInstance().addClientRequest(createGameRequest);
-
     }
 
     @Override

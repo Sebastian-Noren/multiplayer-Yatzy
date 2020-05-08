@@ -1,5 +1,7 @@
 package software.engineering.yatzy.game;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class Game {
@@ -89,9 +91,11 @@ public class Game {
     public Player getPlayerByName(String nameID) {
         for(Player player : playerList) {
             if(player.getName().equals(nameID)) {
+                Log.e("Info", player.toString());
                 return player;
             }
         }
+        Log.e("Info", "FAIL!");
         return  null;
     }
 
