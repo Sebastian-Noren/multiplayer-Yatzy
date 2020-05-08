@@ -182,7 +182,7 @@ public class GameFragment extends Fragment implements Updatable {
                 }
             }
         });
-
+//lol
         //TODO Implement chat etc
         chatButton.setOnClickListener(new View.OnClickListener() {
             @Override
