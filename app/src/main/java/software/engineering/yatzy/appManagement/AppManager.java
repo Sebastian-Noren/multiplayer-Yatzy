@@ -321,13 +321,13 @@ public class AppManager {
         int gameID = Integer.parseInt(commands[++count]);
         String gameName = commands[++count];
         // TurnState:
-        int rollTurn = Integer.parseInt(commands[++count]);
+        int currentPlayer = Integer.parseInt(commands[++count]);
         int rollNr = Integer.parseInt(commands[++count]);
         int[] diceValues = new int[5];
         for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
-        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        TurnState turnState = new TurnState(currentPlayer, rollNr, diceValues);
         // Players:
         ArrayList<Player> playerList = new ArrayList<>();
         while (true) {
@@ -364,13 +364,13 @@ public class AppManager {
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         // turnState
-        int rollTurn = Integer.parseInt(commands[++count]);
+        int currentPlayer = Integer.parseInt(commands[++count]);
         int rollNr = Integer.parseInt(commands[++count]);
         int[] diceValues = new int[5];
         for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
-        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        TurnState turnState = new TurnState(currentPlayer, rollNr, diceValues);
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
@@ -389,13 +389,13 @@ public class AppManager {
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         // turnState
-        int rollTurn = Integer.parseInt(commands[++count]); // Next player's turn now
+        int currentPlayer = Integer.parseInt(commands[++count]); // Next player's turn now
         int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
         int[] diceValues = new int[5];
         for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
-        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        TurnState turnState = new TurnState(currentPlayer, rollNr, diceValues);
         // Updates in previous player's scoreboard
         int indexOfPreviousPlayer = Integer.parseInt(commands[++count]);
         int scoreboardIndex = Integer.parseInt(commands[++count]);
@@ -422,13 +422,13 @@ public class AppManager {
         int gameID = Integer.parseInt(commands[++count]);
         GameState gameState = GameState.valueOf(commands[++count]);
         // turnState
-        int rollTurn = Integer.parseInt(commands[++count]); // First player's turn now
+        int currentPlayer = Integer.parseInt(commands[++count]); // First player's turn now
         int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
         int[] diceValues = new int[5];
         for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
-        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        TurnState turnState = new TurnState(currentPlayer, rollNr, diceValues);
         // Players: Now reduced only to host + those that have accepted
         ArrayList<Player> playerList = new ArrayList<>();
         while (true) {

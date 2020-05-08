@@ -39,12 +39,23 @@ public class JoinGameDialog extends AppCompatDialogFragment implements Updatable
     private ImageButton cancelBtn;
     private ArrayList<Room> pendingList;
     private String accountName;
+    private SendInviteAcceptData sendInviteAcceptData;
+    private int decline, accept;
+    private ArrayList<Room> listAccept;
+
+    public interface SendInviteAcceptData{
+        void sendDecline(int minusInviteCounter);
+        void sendAccept(int minusInviteCounter, ArrayList<Room> listOfAccepted);
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.join_game_popup, container, false);
         Log.d(TAG, "Join dialog open");
+        decline = 0;
+        accept = 0;
+        listAccept = new ArrayList<>();
         accountName = AppManager.getInstance().loggedInUser.getNameID();
 
         itemTouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -64,14 +75,17 @@ public class JoinGameDialog extends AppCompatDialogFragment implements Updatable
                         AppManager.getInstance().addClientRequest(serverRequest);
                         pendingList.remove(position);
                         invitationAdapter.notifyItemRemoved(position);
+                        decline++;
                         break;
                     case ItemTouchHelper.RIGHT:
                         //TODO send request to server
                         Utilities.toastMessage(getContext(),"Send accept to server");
                         serverRequest = MessageFormat.format("33:{0}:{1}", pendingList.get(position).getRoomID(), PlayerParticipation.ACCEPTED.toString());
                         AppManager.getInstance().addClientRequest(serverRequest);
+                        listAccept.add(pendingList.get(position));
                         pendingList.remove(position);
                         invitationAdapter.notifyItemRemoved(position);
+                        accept++;
                         break;
                 }
                 if (pendingList.size() == 0){
@@ -90,7 +104,6 @@ public class JoinGameDialog extends AppCompatDialogFragment implements Updatable
 
             }
         };
-
 
         initDialog(view);
 
@@ -141,6 +154,11 @@ public class JoinGameDialog extends AppCompatDialogFragment implements Updatable
 
     @Override
     public void onAttach(Context context) {
+        try {
+            sendInviteAcceptData = (SendInviteAcceptData) getTargetFragment();
+        } catch (ClassCastException e) {
+            Log.e(TAG, e.toString() + " in CreateAccountDialog");
+        }
         super.onAttach(context);
         Log.d(TAG, "JoinGameDialog: In the onDestroyView() event");
     }
@@ -214,5 +232,7 @@ public class JoinGameDialog extends AppCompatDialogFragment implements Updatable
     public void onDetach() {
         super.onDetach();
         Log.d(TAG, "JoinGameDialog: In the onDetach() event");
+        sendInviteAcceptData.sendDecline(decline);
+        sendInviteAcceptData.sendAccept(accept,listAccept);
     }
 }
