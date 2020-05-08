@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
@@ -24,13 +25,14 @@ import software.engineering.yatzy.MainActivity;
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.Utilities;
 import software.engineering.yatzy.appManagement.AppManager;
+import software.engineering.yatzy.appManagement.Updatable;
 import software.engineering.yatzy.game.Game;
 import software.engineering.yatzy.game.GameState;
 import software.engineering.yatzy.game.PlayerParticipation;
 import software.engineering.yatzy.overview.Room;
 
 
-public class JoinGameDialog extends AppCompatDialogFragment {
+public class JoinGameDialog extends AppCompatDialogFragment implements Updatable {
     private String tag = "Info";
     private InvitationAdapter invitationAdapter;
     private ItemTouchHelper.SimpleCallback itemTouchHelperCallback;
@@ -53,15 +55,20 @@ public class JoinGameDialog extends AppCompatDialogFragment {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
+                String serverRequest;
                 switch (direction){
                     case ItemTouchHelper.LEFT:
                         Utilities.toastMessage(getContext(),"Decline");
+                        serverRequest = MessageFormat.format("33:{0}:{1}", pendingList.get(position).getRoomID(), PlayerParticipation.DECLINED.toString());
+                        AppManager.getInstance().addClientRequest(serverRequest);
                         pendingList.remove(position);
                         invitationAdapter.notifyItemRemoved(position);
                         break;
                     case ItemTouchHelper.RIGHT:
                         //TODO send request to server
                         Utilities.toastMessage(getContext(),"Send accept to server");
+                        serverRequest = MessageFormat.format("33:{0}:{1}", pendingList.get(position).getRoomID(), PlayerParticipation.ACCEPTED.toString());
+                        AppManager.getInstance().addClientRequest(serverRequest);
                         pendingList.remove(position);
                         invitationAdapter.notifyItemRemoved(position);
                         break;
@@ -89,18 +96,20 @@ public class JoinGameDialog extends AppCompatDialogFragment {
         String gameRoom;
         String gameState;
         String host = "No host???";
+        int gameID = -1;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
             boolean pending = AppManager.getInstance().gameList.get(i).getState() == GameState.PENDING;
             if (pending) {
                 gameRoom = AppManager.getInstance().gameList.get(i).getGameName();
                 gameState = AppManager.getInstance().gameList.get(i).getState().toString();
+                gameID = AppManager.getInstance().gameList.get(i).getGameID();
                 for (int j = 0; j < AppManager.getInstance().gameList.get(i).getPlayerListSize() ; j++) {
                     boolean hostCheck = AppManager.getInstance().gameList.get(i).getPlayer(j).participation == PlayerParticipation.HOST;
                     if (hostCheck){
                         host = AppManager.getInstance().gameList.get(i).getPlayer(j).getName();
                     }
                 }
-                pendingList.add(new Room(gameRoom, "Game Host: " + host, gameState));
+                pendingList.add(new Room(gameRoom, "Game Host: " + host, gameState,gameID));
             }
         }
         invitationAdapter.notifyDataSetChanged();
@@ -144,4 +153,8 @@ public class JoinGameDialog extends AppCompatDialogFragment {
         recViewInvitePlayers.setAdapter(invitationAdapter);
     }
 
+    @Override
+    public void update(int protocolIndex, int gameID, String exceptionMessage) {
+
+    }
 }

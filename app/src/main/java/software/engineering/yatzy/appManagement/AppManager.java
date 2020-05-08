@@ -34,8 +34,8 @@ import software.engineering.yatzy.game.TurnState;
 
 public class AppManager {
 
-    private static final String TAG = "Network AppManager";
-
+   // private static final String TAG = "Network AppManager";
+   private static final String TAG = "Info";
     // Service. UI thread -> Service
     private NetworkService networkService;
     private volatile boolean isBound;
@@ -268,7 +268,7 @@ public class AppManager {
     // #15
     // A not started game. For those that are not host, this is the invitation
     private void receiveGamePENDING(String[] commands) throws Exception {
-        Log.i(TAG, "From server: Newly created game received");
+        Log.i(TAG, "From server: PENDING game received");
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         String gameName = commands[++count];
