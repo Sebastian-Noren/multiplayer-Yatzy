@@ -57,14 +57,11 @@ public class GameFragment extends Fragment implements Updatable {
     private String requestToServer;
     private int tableRowIndex;
     private int lastplayer;
+    private ArrayList<TableLayout> tables;
 
     private Dice[] dices = {new Dice(DiceName.DICE1, true, 0, false), new Dice(DiceName.DICE2, true, 0, false),
             new Dice(DiceName.DICE3, true, 0, false), new Dice(DiceName.DICE4, true, 0, false),
             new Dice(DiceName.DICE5, true, 0, false)};
-
-    private int[] dice;
-    private ArrayList<TableLayout> tables;
-
     // Temp variable
     private boolean scoreHasBeenPlaced = false;
     private int gameIndex;
@@ -126,14 +123,6 @@ public class GameFragment extends Fragment implements Updatable {
         currentGame = AppManager.getInstance().gameList.get(gameIndex);
         Log.e(TAG, "onCreateView: " + currentGame.toString());
         AppManager.getInstance().currentFragment = this;
-        // set current playing state
-        if (currentGame.getTurnState().getRollTurn() == 0) {
-            state = State.NEWPLAYER;
-            Log.i(TAG, "Init State: " + state);
-        } else {
-            state = State.PLAYING;
-            Log.i(TAG, "Init State: " + state);
-        }
 
         initDice();
         addTable(getContext(), view);
@@ -148,8 +137,6 @@ public class GameFragment extends Fragment implements Updatable {
             public void onClick(View v) {
                 Log.i(TAG, "Rolling dice! ");
                 soundEngine.buttonClick();
-               // dice = diceRollAlgorithm();
-                Log.e(TAG, "Dice value: " + Arrays.toString(dice));
                 switch (state) {
                     case NEWPLAYER:
                         Log.i(TAG, "NEW PLAYER STATE! ");
@@ -195,7 +182,7 @@ public class GameFragment extends Fragment implements Updatable {
                 }
             }
         });
-
+//lol
         //TODO Implement chat etc
         chatButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -257,8 +244,16 @@ public class GameFragment extends Fragment implements Updatable {
     }
 
     private void checkIfPlayerIsAllowedToPlay(){
-        if (AppManager.getInstance().loggedInUser.getNameID() == currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName()){
+        if (AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())){
             rollButton.setEnabled(true);
+            // set current playing state
+            if (currentGame.getTurnState().getRollTurn() == 0) {
+                state = State.NEWPLAYER;
+                Log.i(TAG, "Init State: " + state);
+            } else {
+                state = State.PLAYING;
+                Log.i(TAG, "Init State: " + state);
+            }
         }else {
             rollButton.setEnabled(false);
         }
