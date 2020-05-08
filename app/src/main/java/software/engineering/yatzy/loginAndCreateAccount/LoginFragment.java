@@ -1,23 +1,17 @@
-package software.engineering.yatzy.login;
+package software.engineering.yatzy.loginAndCreateAccount;
 
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.EdgeEffect;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Objects;
 
@@ -49,6 +43,7 @@ public class LoginFragment extends Fragment implements Updatable {
     private NavController navController;
     private EditText editText_nameID, editTextPassword;
     private TextView login_label;
+    private ImageView createAccount_imageView;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
@@ -59,6 +54,7 @@ public class LoginFragment extends Fragment implements Updatable {
         editText_nameID = view.findViewById(R.id.name_id_ed);
         editTextPassword = view.findViewById(R.id.password_edittext);
         login_label = view.findViewById(R.id.login_label);
+        createAccount_imageView = view.findViewById(R.id.create_account);
 
         // Report currently displayed fragment to AppManager. Maybe from onViewCreated?
         AppManager.getInstance().currentFragment = this;
@@ -68,6 +64,13 @@ public class LoginFragment extends Fragment implements Updatable {
             public void onClick(View view) {
                 login();
                 closeKeyboard();
+            }
+        });
+
+        createAccount_imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
             }
         });
 
@@ -94,7 +97,8 @@ public class LoginFragment extends Fragment implements Updatable {
 
         if (usernameInput.equals(":") || passwordInput.equals(":")) {
             login_label.setText("Unknown Character ");
-        }else if (usernameInput.equals("") || passwordInput.equals("")){
+        }
+        if (usernameInput.equals("") || passwordInput.equals("")){
             login_label.setText("Enter NameID and Password");
         } else{
             String loginRequest = "1:" + usernameInput + ":" + passwordInput;

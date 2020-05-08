@@ -106,7 +106,7 @@
                 android:elevation="20dp">
 
                 <ImageView
-                    android:id="@+id/imageView"
+                    android:id="@+id/create_account"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:background="@drawable/lo_singup_botton_ui"
