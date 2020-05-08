@@ -14,6 +14,12 @@ public class Room {
 
     }
 
+    public Room(String title, String description, String status) {
+        this.title = title;
+        this.description = description;
+        this.Status = status;
+    }
+
     public int getRoomID() {
         return roomID;
     }
