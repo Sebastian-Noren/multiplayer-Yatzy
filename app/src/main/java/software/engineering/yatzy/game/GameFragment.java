@@ -68,7 +68,6 @@ public class GameFragment extends Fragment implements Updatable {
     // Temp variable
     private boolean scoreHasBeenPlaced = false;
     private int gameIndex;
-    int turn;
 
     // The Update method
     @Override
@@ -98,9 +97,8 @@ public class GameFragment extends Fragment implements Updatable {
                     setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
                     Log.e(TAG, "onCreateView: " + currentGame.toString());
                     turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
-
+                    checkIfPlayerIsAllowedToPlay();
                 }
-
                 break;
             case 40:
                 Log.e(TAG, exceptionMessage);
@@ -142,6 +140,8 @@ public class GameFragment extends Fragment implements Updatable {
         setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
         turnStateText.setText(MessageFormat.format("{0}/3", currentGame.getTurnState().getRollTurn()));
 
+        checkIfPlayerIsAllowedToPlay();
+
         // Roll button
         rollButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -182,7 +182,6 @@ public class GameFragment extends Fragment implements Updatable {
                         Log.e(TAG, "Problem occurred!");
                         break;
                 }
-
             }
         });
 
@@ -255,6 +254,14 @@ public class GameFragment extends Fragment implements Updatable {
         });
 
         return view;
+    }
+
+    private void checkIfPlayerIsAllowedToPlay(){
+        if (AppManager.getInstance().loggedInUser.getNameID() == currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName()){
+            rollButton.setEnabled(true);
+        }else {
+            rollButton.setEnabled(false);
+        }
     }
 
     //************************************** GRAPHIC/ENGINE CODE BELOW HERE *******************************************************************
