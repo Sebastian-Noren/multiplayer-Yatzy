@@ -38,6 +38,8 @@ public class AppManager {
    private static final String TAG = "Info";
     // Service. UI thread -> Service
     private NetworkService networkService;
+    // Guide UI in case of being put in background during cloud connection phase
+    public NetworkState networkState;
     private volatile boolean isBound;
     public volatile boolean appInFocus; // Redundant since isBound is true when app is in focus?
 
@@ -67,6 +69,7 @@ public class AppManager {
 
     private AppManager() {
         networkService = null;
+        networkState = NetworkState.UNDEFINED;
         isBound = false;
         appInFocus = false;
         handler = new Handler();
@@ -200,7 +203,7 @@ public class AppManager {
                     gameEnd(commands);
                     break;
                 case "23":
-                    updateIndividualHighScore(commands[1]);
+                    updateIndividualGameStats(commands);
                     break;
                 case "24":
                     updateUniversalHighScoreList(Arrays.copyOfRange(commands, 1, 7));
@@ -241,10 +244,16 @@ public class AppManager {
             // Initiate universal top 3 high score
             updateUniversalHighScoreList(Arrays.copyOfRange(commands, 7, 13));
             // Direct to main menu
-            navController.navigate(R.id.navigation_main);
+            networkState = NetworkState.ALLOWED;
+            if (appInFocus) {
+                navController.navigate(R.id.navigation_main);
+                networkState = NetworkState.ENTERED;
+            }
         } else {
             // Pass exception message to Login fragment
-            currentFragment.update(40, -1, commands[2]);
+            if(appInFocus) {
+                currentFragment.update(40, -1, commands[2]);
+            }
         }
     }
 
@@ -256,9 +265,14 @@ public class AppManager {
             loggedInUser.highScore = Integer.parseInt(commands[4]);
             updateUniversalHighScoreList(Arrays.copyOfRange(commands, 5, 11));
             // Direct to main menu
-            navController.navigate(R.id.navigation_main);
+            networkState = NetworkState.ALLOWED;
+            if (appInFocus) {
+                navController.navigate(R.id.navigation_main);
+                networkState = NetworkState.ENTERED;
+            }
         } else {
             // Direct to manual login
+            networkState = NetworkState.LOGIN;
             if (appInFocus) {
                 navController.navigate(R.id.navigation_Login);
             }
@@ -474,9 +488,13 @@ public class AppManager {
     }
 
     // #23
-    private void updateIndividualHighScore(String highScore) throws Exception {
-        Log.i(TAG, "From server: Update of this player's high score");
-        loggedInUser.highScore = Integer.parseInt(highScore);
+    private void updateIndividualGameStats(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Update of this player's game stats");
+        loggedInUser.gamesPlayed = Integer.parseInt(commands[1]);
+        boolean newIndividualHighScore = commands[2].equals("new");
+        if(newIndividualHighScore) {
+            loggedInUser.highScore = Integer.parseInt(commands[3]);
+        }
         if (appInFocus) {
             currentFragment.update(23, -1, null);
         }
@@ -508,9 +526,15 @@ public class AppManager {
         Log.i(TAG, "From server: Result of invitation reply");
         int gameID = Integer.parseInt(commands[1]);
         PlayerParticipation participation = PlayerParticipation.valueOf(commands[2]);
-        for (Game game : gameList) {
-            if (game.getGameID() == gameID) {
-                game.getPlayerByName(loggedInUser.getNameID()).participation = participation;
+
+        for (int game = 0 ; game < gameList.size() ; game++) {
+            if(gameList.get(game).getGameID() == gameID) {
+                if(participation == PlayerParticipation.DECLINED) {
+                    gameList.remove(game);
+                } else {
+                    gameList.get(game).getPlayerByName(loggedInUser.getNameID()).participation = participation;
+                }
+                break;
             }
         }
         if (appInFocus) {
@@ -542,6 +566,15 @@ public class AppManager {
                 bindToService(applicationContext, navController);
             }
         }
+    }
+
+    public Game getGameByGameID(int gameID) {
+        for (Game game : gameList) {
+            if (game.getGameID() == gameID) {
+                return game;
+            }
+        }
+        return null;
     }
 
     // =========================== ESTABLISH CLOUD CONNECTION ======================================
@@ -621,15 +654,6 @@ public class AppManager {
                 }
             }
         }).start();
-    }
-
-    public Game getGameByGameID(int gameID) {
-        for (Game game : gameList) {
-            if (game.getGameID() == gameID) {
-                return game;
-            }
-        }
-        return null;
     }
 
     // =========================== READ FROM CACHE ======================================
