@@ -32,7 +32,7 @@ import software.engineering.yatzy.game.PlayerParticipation;
 import software.engineering.yatzy.overview.create_game.CreateGameDialog;
 import software.engineering.yatzy.overview.join_game.JoinGameDialog;
 
-public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput, Updatable {
+public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput, JoinGameDialog.SendInviteAcceptData, Updatable {
 
     private static final String TAG = "Info";
     private NavController navController;
@@ -145,13 +145,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         fabInvite.setTranslationX(translationYX);
         textFabInvite.setTranslationX(translationYX);
 
-        if (inviteCounter == 0) {
-            invitationFrame.setVisibility(View.INVISIBLE);
-            invitationCounter.setText(String.valueOf(inviteCounter));
-        } else {
-            invitationFrame.setVisibility(View.VISIBLE);
-            invitationCounter.setText(String.valueOf(inviteCounter));
-        }
+        changeInviteFrame();
     }
 
     private void openMenu() {
@@ -196,6 +190,16 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         createGameDialog.show(Objects.requireNonNull(getFragmentManager()), "createGame");
     }
 
+    private void changeInviteFrame(){
+        if (inviteCounter == 0) {
+            invitationFrame.setVisibility(View.INVISIBLE);
+            invitationCounter.setText(String.valueOf(inviteCounter));
+        } else {
+            invitationFrame.setVisibility(View.VISIBLE);
+            invitationCounter.setText(String.valueOf(inviteCounter));
+        }
+    }
+
     @Override
     public void saveComplete(String gameName, String host, ArrayList<String> listOfInvitedPlayers) {
         AppManager.getInstance().currentFragment = this;
@@ -209,19 +213,28 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     }
 
     @Override
+    public void sendDecline(int minusInviteCounter) {
+        inviteCounter -= minusInviteCounter;
+        changeInviteFrame();
+    }
+
+    @Override
+    public void sendAccept(int minusInviteCounter, ArrayList<Room> listOfAccepted) {
+        inviteCounter -= minusInviteCounter;
+        changeInviteFrame();
+
+        gameSessionLists.addAll(listOfAccepted);
+        gameAdapter.notifyDataSetChanged();
+    }
+
+    @Override
     public void update(int protocolIndex, int gameID, String exceptionMessage) {
         switch (protocolIndex) {
             case 15:
                 for (Game game : AppManager.getInstance().gameList) {
                     if (game.getGameID() == gameID) {
                         inviteCounter++;
-                        if (inviteCounter == 0) {
-                            invitationFrame.setVisibility(View.INVISIBLE);
-                            invitationCounter.setText(String.valueOf(inviteCounter));
-                        } else {
-                            invitationFrame.setVisibility(View.VISIBLE);
-                            invitationCounter.setText(String.valueOf(inviteCounter));
-                        }
+                        changeInviteFrame();
                         break;
                     }
                 }
@@ -326,5 +339,4 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         super.onDetach();
         Log.d(TAG, "HomeFragment: In the onDetach() event");
     }
-
 }

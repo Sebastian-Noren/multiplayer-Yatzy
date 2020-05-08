@@ -34,7 +34,6 @@ import software.engineering.yatzy.appManagement.Updatable;
 
 public class GameFragment extends Fragment implements Updatable {
 
-
     enum State {
         NEWPLAYER, PLAYING, PLACE_SCORE, END_TURN
     }
@@ -106,8 +105,8 @@ public class GameFragment extends Fragment implements Updatable {
 
         //Get the game user clicked on and get it from games list.
         gameIndex = getArguments().getInt("gameToPlay");
-        currentGame = games.get(gameIndex);
-        Log.e(TAG, "onCreateView: " + AppManager.getInstance().gameList.get(0).toString());
+        currentGame = AppManager.getInstance().gameList.get(gameIndex);
+        Log.e(TAG, "onCreateView: " + currentGame.toString());
 
         // set current playing state
         if (currentGame.getTurnState().getRollTurn() == 0) {
@@ -130,7 +129,7 @@ public class GameFragment extends Fragment implements Updatable {
                 Log.i(TAG, "Rolling dice! ");
                 turn = currentGame.getTurnState().getRollTurn();
                 soundEngine.buttonClick();
-                dice = diceRollAlgorithm();
+               // dice = diceRollAlgorithm();
                 Log.e(TAG, "Dice value: " + Arrays.toString(dice));
                 switch (state) {
                     case NEWPLAYER:
@@ -337,6 +336,7 @@ public class GameFragment extends Fragment implements Updatable {
         }).start();
     }
 
+/*
     //Dice roll algorithm
     private int[] diceRollAlgorithm() {
         SecureRandom rand = new SecureRandom();
@@ -346,6 +346,7 @@ public class GameFragment extends Fragment implements Updatable {
         }
         return temp;
     }
+*/
 
     //Set dice graphic as the dice values.
     private void updateDiceGraphic() {
@@ -356,8 +357,8 @@ public class GameFragment extends Fragment implements Updatable {
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             } else if (dices[i].isSelected() && state == State.PLAYING) {
                 Log.i(TAG, "Update graphic: 2");
-                dices[i].setDiceValue(dice[i]);
-                //    dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
+               // dices[i].setDiceValue(dice[i]);
+                dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             }
         }
@@ -685,7 +686,11 @@ public class GameFragment extends Fragment implements Updatable {
                 scoreTextField.setLayoutParams(rowParams); // TableRow is the parent view
                 scoreTextField.setGravity(Gravity.CENTER);
 
-                scoreTextField.setText(String.valueOf(currentGame.getPlayer(i).getScoreBoardElement(f)));
+                if (currentGame.getPlayer(i).getScoreBoardElement(f) == -1){
+                    scoreTextField.setText("");
+                }else {
+                    scoreTextField.setText(String.valueOf(currentGame.getPlayer(i).getScoreBoardElement(f)));
+                }
                 tableRow.addView(scoreTextField);
 
                 //allows you to select a specific row
