@@ -18,8 +18,8 @@ import java.util.concurrent.BlockingQueue;
 
 public class NetworkService extends Service {
 
-    private static final String TAG = "Network NetworkService";
-
+   /// private static final String TAG = "Network NetworkService";
+   private static final String TAG = "Info";
     // Binder object to bind client(s) to the service
     private IBinder binder = new MyBinder();
     // Binder: For retrieving a service instance, used by the client to communicate with the service
@@ -73,33 +73,6 @@ public class NetworkService extends Service {
         super.onTaskRemoved(rootIntent);
         // + stop threads running
         stopSelf();
-    }
-
-    // =================================== TEST ====================================================
-
-    public void test(final Handler handler) {
-        new Thread(new Runnable() {
-            int count = 0;
-            @Override
-            public void run() {
-                while (count < 12 && !serviceShutDown) {
-                    try {
-                        Thread.sleep(4000);
-                        count++;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            AppManager.getInstance().testInt = count;
-                            AppManager.getInstance().update();
-                            Log.i(TAG, "count " + count);
-                        }
-                    });
-                }
-            }
-        }).start();
     }
 
     // ============= CUSTOM UTILITY THREADS AND METHODS ==========================
@@ -211,12 +184,12 @@ public class NetworkService extends Service {
                 connectedToCloud = false;
                 inputThread = null;
                 // Notify UI thread: Connection lost/terminated/unable to establish
-                updateUIThread("41");
-
-                Log.i(TAG, "Input thread closed " + Thread.currentThread().getName());
-                if(!intendedSocketClose) {
-                    // Reconnect
+                if(intendedSocketClose) {
+                    updateUIThread("41:intended");
+                } else {
+                    updateUIThread("41:unintended");
                 }
+                Log.i(TAG, "Input thread closed " + (intendedSocketClose ? "intended " : "unintended ") + Thread.currentThread().getName());
             }
         }
 

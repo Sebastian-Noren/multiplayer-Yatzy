@@ -29,16 +29,6 @@ public class SetupFragment extends Fragment implements Updatable{
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        connectToCloudWithSessionKey();
-    }
-
-    private void connectToCloudWithSessionKey() {
-        AppManager.getInstance().readUserDataFromCache();
-    }
-
-    @Override
     public void update(int protocolIndex, int gameID, String exceptionMessage) {
         // Keep empty here
     }

@@ -12,33 +12,34 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.game.Game;
+import software.engineering.yatzy.overview.Room;
 
 public class InvitationAdapter extends RecyclerView.Adapter<InvitationAdapter.InvitationHolder> {
 
     private Context context;
-    private ArrayList<Game> games;
+    private ArrayList<Room> inviteItems;
 
-    public InvitationAdapter(Context context, ArrayList<Game> gameInvitation) {
+    public InvitationAdapter(Context context, ArrayList<Room> gameInvitation) {
         this.context = context;
-        this.games = gameInvitation;
+        this.inviteItems = gameInvitation;
     }
 
     @NonNull
     @Override
     public InvitationHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_inviteplayer, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.invitation_item, parent, false);
         return new InvitationHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull InvitationHolder holder, int position) {
-        Game game = this.games.get(position);
-        holder.setDetails(game);
+        Room items = this.inviteItems.get(position);
+        holder.setDetails(items);
     }
 
     @Override
     public int getItemCount() {
-        return games.size();
+        return inviteItems.size();
     }
 
     static class InvitationHolder extends RecyclerView.ViewHolder {
@@ -53,8 +54,10 @@ public class InvitationAdapter extends RecyclerView.Adapter<InvitationAdapter.In
 
         }
 
-        void setDetails(Game details) {
-            //playerAccountName.setText(details.getName());
+        void setDetails(Room details) {
+            invitedGame.setText(details.getTitle());
+            invitationHost.setText(details.getDescription());
+            userstatus.setText(details.getStatus());
         }
     }
 }
