@@ -4,23 +4,27 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import java.util.Objects;
 
 import software.engineering.yatzy.appManagement.AppManager;
+import software.engineering.yatzy.appManagement.NetworkState;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Info";
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // UNCOMMENT LATER:
-        AppManager.getInstance().bindToService(getApplicationContext(), Navigation.findNavController(Objects.requireNonNull(this), R.id.nav_host_fragment));
+        navController = Navigation.findNavController(Objects.requireNonNull(this), R.id.nav_host_fragment);
+
+        AppManager.getInstance().bindToService(getApplicationContext(), navController);
     }
 
     @Override
@@ -42,8 +46,21 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Log.d(TAG, "MainActivity: In the onResume() event");
 
-        // UNCOMMENT LATER:
         AppManager.getInstance().appInFocus = true;
+
+        // If app has been put to background during connection phase
+        switch (AppManager.getInstance().networkState) {
+            case LOGIN:
+                navController.navigate(R.id.navigation_Login);
+                break;
+            case ALLOWED:
+                AppManager.getInstance().networkState = NetworkState.ENTERED;
+                navController.navigate(R.id.navigation_main);
+                break;
+            default:
+                // Has already entered successfully or has not begun connecting.
+                break;
+        }
     }
 
     protected void onPause() {
@@ -63,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(TAG, "MainActivity: In the onDestroy() event");
 
-        // UNCOMMENT LATER
         AppManager.getInstance().unbindFromService();
     }
 
