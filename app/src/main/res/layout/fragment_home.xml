@@ -8,10 +8,11 @@
 
     <LinearLayout
         android:id="@+id/linearLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/fabStart"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -90,20 +91,23 @@
         app:layout_constraintEnd_toStartOf="@id/fab_invite" />
 
     <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:id="@+id/invitation_frame"
+        android:layout_width="26dp"
+        android:layout_height="25dp"
         android:layout_marginEnd="8dp"
-        android:background="@drawable/dialog_background"
-        android:padding="5dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_marginBottom="72dp"
+        android:background="@drawable/circle"
+        android:padding="1dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
-            android:id="@+id/textView12"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/invitation_counter"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:text="10"
+            android:gravity="center"
+
             android:textStyle="bold" />
     </FrameLayout>
 
