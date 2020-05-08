@@ -18,8 +18,8 @@ import java.util.concurrent.BlockingQueue;
 
 public class NetworkService extends Service {
 
-    private static final String TAG = "Network NetworkService";
-
+   /// private static final String TAG = "Network NetworkService";
+   private static final String TAG = "Info";
     // Binder object to bind client(s) to the service
     private IBinder binder = new MyBinder();
     // Binder: For retrieving a service instance, used by the client to communicate with the service

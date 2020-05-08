@@ -110,7 +110,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         //TODO remove, will be based on a real arraylist later.
-        gameSessionLists.add(new software.engineering.yatzy.overview.Room("Room 1", "4 players", "Ongoing", 1));
+        gameSessionLists.add(new Room("Room 1", "4 players", "Ongoing", 1));
 
         inviteCounter = 0;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
@@ -120,7 +120,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                 String gameState = AppManager.getInstance().gameList.get(i).getState().toString();
                 int roomId = AppManager.getInstance().gameList.get(i).getGameID();
                 String description = "A real game";
-                gameSessionLists.add(new software.engineering.yatzy.overview.Room(gameRoom, description, gameState, roomId));
+                gameSessionLists.add(new Room(gameRoom, description, gameState, roomId));
             } else {
                 inviteCounter++;
             }
@@ -128,16 +128,6 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
 
         gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
         recyclerView.setAdapter(gameAdapter);
-
-        // inviteCounter = 0;
-
-        if (inviteCounter == 0) {
-            invitationFrame.setVisibility(View.INVISIBLE);
-            invitationCounter.setText(String.valueOf(inviteCounter));
-        } else {
-            invitationFrame.setVisibility(View.VISIBLE);
-            invitationCounter.setText(String.valueOf(inviteCounter));
-        }
 
         fabInvite.setAlpha(0f);
         textFabInvite.setAlpha(0f);
@@ -151,6 +141,14 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         textCreateGame.setTranslationY(translationYX);
         fabInvite.setTranslationX(translationYX);
         textFabInvite.setTranslationX(translationYX);
+
+        if (inviteCounter == 0) {
+            invitationFrame.setVisibility(View.INVISIBLE);
+            invitationCounter.setText(String.valueOf(inviteCounter));
+        } else {
+            invitationFrame.setVisibility(View.VISIBLE);
+            invitationCounter.setText(String.valueOf(inviteCounter));
+        }
     }
 
     private void openMenu() {
@@ -212,7 +210,19 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     public void update(int protocolIndex, int gameID, String exceptionMessage) {
         switch (protocolIndex) {
             case 15:
-
+                for (Game game : AppManager.getInstance().gameList) {
+                    if (game.getGameID() == gameID) {
+                        inviteCounter++;
+                        if (inviteCounter == 0) {
+                            invitationFrame.setVisibility(View.INVISIBLE);
+                            invitationCounter.setText(String.valueOf(inviteCounter));
+                        } else {
+                            invitationFrame.setVisibility(View.VISIBLE);
+                            invitationCounter.setText(String.valueOf(inviteCounter));
+                        }
+                        break;
+                    }
+                }
                 break;
             case 16:
                 String gameRoom = "";
@@ -228,9 +238,9 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                         break;
                     }
                 }
-                software.engineering.yatzy.overview.Room room = new software.engineering.yatzy.overview.Room(gameRoom, description, gameState, roomId);
+                Room room = new Room(gameRoom, description, gameState, roomId);
                 Log.e(TAG, "update: " + room.toString());
-                gameSessionLists.add(new software.engineering.yatzy.overview.Room(gameRoom, description, gameState, roomId));
+                gameSessionLists.add(new Room(gameRoom, description, gameState, roomId));
                 Log.e(TAG, "update: " + gameSessionLists.toString());
 
                 //  gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
