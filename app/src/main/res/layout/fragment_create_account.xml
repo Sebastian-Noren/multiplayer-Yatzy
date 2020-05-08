@@ -1,20 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/lo_signup_background_color_ui"
-    tools:context=".loginAndCreateAccount.Signup">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".loginAndCreateAccount.CreateAccount">
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
 
     <RelativeLayout
         android:id="@+id/relativeLayout_under_sv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="200dp"
+        android:layout_marginTop="100dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginBottom="70dp">
+        android:layout_marginBottom="110dp">
+
+
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cv"
@@ -33,26 +41,28 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
-                    android:text="Email"
+                    android:text="Enter Your Name"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/name_editText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
-                    android:inputType="textEmailAddress"/>
+                    android:inputType="text" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
-                    android:text="Username"
+                    android:text="NameID"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/nameID_edittext"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
@@ -68,6 +78,7 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/password_ed"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
@@ -82,6 +93,7 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/re_type_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
@@ -103,6 +115,7 @@
             android:elevation="10dp">
 
             <Button
+                android:id="@+id/sign_up_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/lo_singup_botton_ui"
@@ -111,5 +124,14 @@
                 android:textColor="#fff"/>
         </RelativeLayout>
     </RelativeLayout>
-
+    </ScrollView>
+    <TextView
+        android:id="@+id/login_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/cardview"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:textColor="#FF0000"
+        android:textSize="20sp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

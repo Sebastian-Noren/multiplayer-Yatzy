@@ -48,5 +48,11 @@
         android:name="software.engineering.yatzy.testing.TestFragment"
         android:label="Testing"
         tools:layout="@layout/fragment_test"/>
+    <fragment
+        android:id="@+id/create_account"
+        android:name="software.engineering.yatzy.loginAndCreateAccount.CreateAccount"
+        android:label="Create Account"
+        tools:layout="@layout/fragment_create_account"/>
+
 
 </navigation>

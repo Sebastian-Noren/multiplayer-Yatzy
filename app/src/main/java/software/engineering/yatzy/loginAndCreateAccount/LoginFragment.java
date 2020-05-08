@@ -70,7 +70,7 @@ public class LoginFragment extends Fragment implements Updatable {
         createAccount_imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                navController.navigate(R.id.create_account);
             }
         });
 
@@ -95,7 +95,7 @@ public class LoginFragment extends Fragment implements Updatable {
         String usernameInput = editText_nameID.getText().toString().trim();
         String passwordInput = editTextPassword.getText().toString().trim();
 
-        if (usernameInput.equals(":") || passwordInput.equals(":")) {
+        if (usernameInput.contains(":") || passwordInput.contains(":")) {
             login_label.setText("Unknown Character ");
         }
         if (usernameInput.equals("") || passwordInput.equals("")){
