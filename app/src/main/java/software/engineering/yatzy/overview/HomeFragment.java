@@ -16,6 +16,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -44,7 +45,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     private RecyclerView recyclerView;
     private OvershootInterpolator interpolator = new OvershootInterpolator();
     private GameOverviewAdapter gameAdapter;
-    private ArrayList<software.engineering.yatzy.overview.Room> gameSessionLists = new ArrayList<>();
+    private ArrayList<Room> gameSessionLists = new ArrayList<>();
     private int inviteCounter;
     private String accountName;
 
@@ -232,7 +233,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         switch (protocolIndex) {
             case 15:
                 for (Game game : AppManager.getInstance().gameList) {
-                    if (game.getGameID() == gameID) {
+                    if (game.getGameID() == gameID && game.getPlayerByName(AppManager.getInstance().loggedInUser.getNameID()).participation != PlayerParticipation.HOST) {
                         inviteCounter++;
                         changeInviteFrame();
                         break;
@@ -289,6 +290,15 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "HomeFragment: In the OnCreate event()");
+        // This callback will only be called when Fragment is at least Started.
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                getActivity().finish();
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+        // The callback can be enabled or disabled here or in handleOnBackPressed()
     }
 
     //4

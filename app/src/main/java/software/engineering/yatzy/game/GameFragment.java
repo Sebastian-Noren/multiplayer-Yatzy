@@ -24,11 +24,15 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.Utilities;
 import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.appManagement.Updatable;
 
@@ -41,7 +45,7 @@ public class GameFragment extends Fragment implements Updatable {
     private static final String TAG = "Info";
     private static final int SCOREBOARD_SIZE = 18;
     private static final float DICE_START_POSITIONX = 500f;
-
+    private NavController navController;
     private TextView turnStateText;
     private ArtEngine artEngine;
     private SoundEngine soundEngine;
@@ -72,6 +76,7 @@ public class GameFragment extends Fragment implements Updatable {
         switch (protocolIndex) {
             case 18:
                 if (specifier == currentGame.getGameID()){
+                    Utilities.toastMessage(getContext(),"Protocol 18:");
                     currentGame.setTurnState(AppManager.getInstance().getGameByGameID(specifier).getTurnState());
                     lastplayer = currentGame.getTurnState().getCurrentPlayer();
                     Log.e(TAG, "onCreateView: " + currentGame.toString());
@@ -83,7 +88,7 @@ public class GameFragment extends Fragment implements Updatable {
             case 20:
                 if (specifier == currentGame.getGameID()){
                     Log.i(TAG,String.valueOf(lastplayer));
-
+                    Utilities.toastMessage(getContext(),"Protocol 18:");
                     for (int i = 1; i < tables.get(lastplayer).getChildCount(); i++) {
                         TableRow row = (TableRow) tables.get(lastplayer).getChildAt(i);
                         TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
@@ -110,6 +115,7 @@ public class GameFragment extends Fragment implements Updatable {
         View view = inflater.inflate(R.layout.fragment_game, container, false);
         Log.d(TAG, "In the GameFragment");
         AppManager.getInstance().currentFragment = this;
+        navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
 
         // Init all views in the game
         initViews(view);
@@ -124,12 +130,13 @@ public class GameFragment extends Fragment implements Updatable {
         Log.e(TAG, "onCreateView: " + currentGame.toString());
         AppManager.getInstance().currentFragment = this;
 
+        checkIfPlayerIsAllowedToPlay();
+
         initDice();
         addTable(getContext(), view);
         setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
         turnStateText.setText(MessageFormat.format("{0}/3", currentGame.getTurnState().getRollTurn()));
 
-        checkIfPlayerIsAllowedToPlay();
 
         // Roll button
         rollButton.setOnClickListener(new View.OnClickListener() {
@@ -811,6 +818,16 @@ public class GameFragment extends Fragment implements Updatable {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "GameFragment: In the OnCreate event()");
+        Log.d(TAG, "HomeFragment: In the OnCreate event()");
+        // This callback will only be called when Fragment is at least Started.
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                navController.navigate(R.id.navigation_main);
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+        // The callback can be enabled or disabled here or in handleOnBackPressed()
     }
 
     //4
