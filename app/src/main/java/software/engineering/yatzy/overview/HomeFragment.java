@@ -224,8 +224,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         inviteCounter -= minusInviteCounter;
         changeInviteFrame();
 
-        gameSessionLists.addAll(listOfAccepted);
-        gameAdapter.notifyDataSetChanged();
+     //   gameSessionLists.addAll(listOfAccepted);
+     //   gameAdapter.notifyDataSetChanged();
     }
 
     @Override
