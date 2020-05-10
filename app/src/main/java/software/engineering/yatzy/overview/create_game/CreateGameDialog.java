@@ -60,7 +60,6 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
                 Log.d(tag, "Unknown request from server...");
                 break;
         }
-
     }
 
     public interface OnSelectedInput {
@@ -168,7 +167,6 @@ public class CreateGameDialog extends AppCompatDialogFragment implements Updatab
     private void addPlayerToInvite(String invitedPlayer) {
         invitedPlayerList.add(new Player(invitedPlayer));
         inviteSearchAdapter.notifyDataSetChanged();
-
     }
 
     private void initSearchList() {
