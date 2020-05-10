@@ -110,7 +110,7 @@ public class JoinGameDialog extends AppCompatDialogFragment implements Updatable
         String gameRoom;
         String gameState;
         String host = "No host???";
-        int gameID = -1;
+        int gameID;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
             boolean pending = AppManager.getInstance().gameList.get(i).getPlayerByName(accountName).participation == PlayerParticipation.PENDING;
             if (pending) {
