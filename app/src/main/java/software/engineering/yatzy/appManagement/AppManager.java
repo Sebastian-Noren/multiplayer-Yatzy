@@ -34,8 +34,8 @@ import software.engineering.yatzy.game.TurnState;
 
 public class AppManager {
 
-   // private static final String TAG = "Network AppManager";
-   private static final String TAG = "Info";
+    // private static final String TAG = "Network AppManager";
+    private static final String TAG = "Info";
     // Service. UI thread -> Service
     private NetworkService networkService;
     // Guide UI in case of being put in background during cloud connection phase
@@ -251,7 +251,7 @@ public class AppManager {
             }
         } else {
             // Pass exception message to Login fragment
-            if(appInFocus) {
+            if (appInFocus) {
                 currentFragment.update(40, -1, commands[2]);
             }
         }
@@ -320,13 +320,13 @@ public class AppManager {
         int gameID = Integer.parseInt(commands[++count]);
         String gameName = commands[++count];
         // TurnState:
-        int rollTurn = Integer.parseInt(commands[++count]);
+        int currentPlayer = Integer.parseInt(commands[++count]);
         int rollNr = Integer.parseInt(commands[++count]);
         int[] diceValues = new int[5];
         for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
-        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        TurnState turnState = new TurnState(currentPlayer, rollNr, diceValues);
         // Players:
         ArrayList<Player> playerList = new ArrayList<>();
         while (true) {
@@ -354,7 +354,6 @@ public class AppManager {
         if (appInFocus) {
             currentFragment.update(16, gameID, null);
         }
-
     }
 
     // #18
@@ -363,16 +362,19 @@ public class AppManager {
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         // turnState
-        int rollTurn = Integer.parseInt(commands[++count]);
+        int currentPlayer = Integer.parseInt(commands[++count]);
         int rollNr = Integer.parseInt(commands[++count]);
         int[] diceValues = new int[5];
         for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
-        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        TurnState turnState = new TurnState(currentPlayer, rollNr, diceValues);
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
+                for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
+                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? 1 : 0);
+                }
                 break;
             }
         }
@@ -388,13 +390,13 @@ public class AppManager {
         int count = 0;
         int gameID = Integer.parseInt(commands[++count]);
         // turnState
-        int rollTurn = Integer.parseInt(commands[++count]); // Next player's turn now
+        int currentPlayer = Integer.parseInt(commands[++count]); // Next player's turn now
         int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
         int[] diceValues = new int[5];
         for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
-        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        TurnState turnState = new TurnState(currentPlayer, rollNr, diceValues);
         // Updates in previous player's scoreboard
         int indexOfPreviousPlayer = Integer.parseInt(commands[++count]);
         int scoreboardIndex = Integer.parseInt(commands[++count]);
@@ -421,13 +423,13 @@ public class AppManager {
         int gameID = Integer.parseInt(commands[++count]);
         GameState gameState = GameState.valueOf(commands[++count]);
         // turnState
-        int rollTurn = Integer.parseInt(commands[++count]); // First player's turn now
+        int currentPlayer = Integer.parseInt(commands[++count]); // First player's turn now
         int rollNr = Integer.parseInt(commands[++count]);   // Should hence be 1 now
         int[] diceValues = new int[5];
         for (int i = 0; i < diceValues.length; i++) {
             diceValues[i] = Integer.parseInt(commands[++count]);
         }
-        TurnState turnState = new TurnState(rollNr, rollTurn, diceValues);
+        TurnState turnState = new TurnState(currentPlayer, rollNr, diceValues);
         // Players: Now reduced only to host + those that have accepted
         ArrayList<Player> playerList = new ArrayList<>();
         while (true) {
@@ -492,7 +494,7 @@ public class AppManager {
         Log.i(TAG, "From server: Update of this player's game stats");
         loggedInUser.gamesPlayed = Integer.parseInt(commands[1]);
         boolean newIndividualHighScore = commands[2].equals("new");
-        if(newIndividualHighScore) {
+        if (newIndividualHighScore) {
             loggedInUser.highScore = Integer.parseInt(commands[3]);
         }
         if (appInFocus) {
@@ -527,9 +529,9 @@ public class AppManager {
         int gameID = Integer.parseInt(commands[1]);
         PlayerParticipation participation = PlayerParticipation.valueOf(commands[2]);
 
-        for (int game = 0 ; game < gameList.size() ; game++) {
-            if(gameList.get(game).getGameID() == gameID) {
-                if(participation == PlayerParticipation.DECLINED) {
+        for (int game = 0; game < gameList.size(); game++) {
+            if (gameList.get(game).getGameID() == gameID) {
+                if (participation == PlayerParticipation.DECLINED) {
                     gameList.remove(game);
                 } else {
                     gameList.get(game).getPlayerByName(loggedInUser.getNameID()).participation = participation;
@@ -554,16 +556,24 @@ public class AppManager {
     private void lostCloudConnection(String cause) {
         gameList.clear();
         universalHighScores.clear();
-
-        Log.i(TAG, "#41: Attempt to regain server connection");
-
         boolean unintendedClose = cause.equals("unintended");
-        if(unintendedClose) {
-            if(isBound) {
-                stopServiceThreads();
-                readUserDataFromCache();
+        Log.i(TAG, "#41: Handling " + (unintendedClose ? "unintended" : "intended") + " server connection loss");
+
+        if (unintendedClose) {
+            if (networkState == NetworkState.ALLOWED || networkState == NetworkState.ENTERED) {
+                if (isBound) {
+                    stopServiceThreads();
+                    readUserDataFromCache();
+                }
             } else {
-                bindToService(applicationContext, navController);
+                //bindToService(applicationContext, navController);
+                if(isBound) {
+                    stopServiceThreads();
+                }
+                if(appInFocus) {
+                    currentFragment.update(40, -1, "Unable to connect to cloud server");
+                    //navController.navigate(R.id.navigation_Login);
+                }
             }
         }
     }
@@ -622,15 +632,23 @@ public class AppManager {
                                         }
                                     }
                                 }
-                                if (attempt == 9 && !connected) {
+                                if ((attempt == 9 && !connected)) {
+                                    networkState = NetworkState.LOGIN;
                                     if (appInFocus) {
-                                        currentFragment.update(40, -1, "Unable to connect to cloud server");
+                                        //navController.navigate(R.id.navigation_Login);
+                                        //currentFragment.update(40, -1, "Unable to connect to cloud server");
                                     }
                                 }
                             }
                         });
-                    }
-                    if (connected || networkService.socketException) {
+                    } if (connected) {
+                        return;
+                    } else if(networkService.socketException) {
+                        networkState = NetworkState.LOGIN;
+                        if (appInFocus) {
+                            navController.navigate(R.id.navigation_Login);
+                            //currentFragment.update(40, -1, "Unable to connect to cloud server");
+                        }
                         return;
                     }
                 }

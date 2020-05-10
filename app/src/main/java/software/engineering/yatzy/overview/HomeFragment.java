@@ -16,6 +16,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -24,6 +25,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.Utilities;
 import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.appManagement.Updatable;
 import software.engineering.yatzy.game.Game;
@@ -32,7 +34,7 @@ import software.engineering.yatzy.game.PlayerParticipation;
 import software.engineering.yatzy.overview.create_game.CreateGameDialog;
 import software.engineering.yatzy.overview.join_game.JoinGameDialog;
 
-public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput, Updatable {
+public class HomeFragment extends Fragment implements CreateGameDialog.OnSelectedInput, JoinGameDialog.SendInviteAcceptData, Updatable {
 
     private static final String TAG = "Info";
     private NavController navController;
@@ -44,7 +46,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     private RecyclerView recyclerView;
     private OvershootInterpolator interpolator = new OvershootInterpolator();
     private GameOverviewAdapter gameAdapter;
-    private ArrayList<software.engineering.yatzy.overview.Room> gameSessionLists = new ArrayList<>();
+    private ArrayList<Room> gameSessionLists = new ArrayList<>();
     private int inviteCounter;
     private String accountName;
 
@@ -87,11 +89,18 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         gameAdapter.setOnItemClickListener(new GameOverviewAdapter.ItemClickListener() {
             @Override
             public void onItemClickListener(int position) {
+
                 // Sends which game index the player chose
-                Bundle bundle = new Bundle();
-                Log.i(TAG, "Game index: " + position);
-                bundle.putInt("gameToPlay", position);
-                navController.navigate(R.id.navigation_game, bundle);
+                if (AppManager.getInstance().gameList.get(position).getState() == GameState.PENDING) {
+                    Utilities.toastMessage(getContext(), "Need to wait other players to accept!");
+                } else {
+                    Bundle bundle = new Bundle();
+                    Log.i(TAG, "Game index: " + position);
+                    bundle.putInt("gameToPlay", position);
+                    navController.navigate(R.id.navigation_game, bundle);
+                }
+
+
             }
         });
 
@@ -113,7 +122,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         //TODO remove, will be based on a real arraylist later.
-        gameSessionLists.add(new Room("Room 1", "4 players", "Ongoing", 1));
+       // gameSessionLists.add(new Room("Room 1", "4 players", "Ongoing", 1));
+
 
         inviteCounter = 0;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
@@ -145,13 +155,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         fabInvite.setTranslationX(translationYX);
         textFabInvite.setTranslationX(translationYX);
 
-        if (inviteCounter == 0) {
-            invitationFrame.setVisibility(View.INVISIBLE);
-            invitationCounter.setText(String.valueOf(inviteCounter));
-        } else {
-            invitationFrame.setVisibility(View.VISIBLE);
-            invitationCounter.setText(String.valueOf(inviteCounter));
-        }
+        changeInviteFrame();
+
     }
 
     private void openMenu() {
@@ -196,58 +201,90 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         createGameDialog.show(Objects.requireNonNull(getFragmentManager()), "createGame");
     }
 
+    private void changeInviteFrame(){
+        if (inviteCounter == 0) {
+            invitationFrame.setVisibility(View.INVISIBLE);
+            invitationCounter.setText(String.valueOf(inviteCounter));
+        } else {
+            invitationFrame.setVisibility(View.VISIBLE);
+            invitationCounter.setText(String.valueOf(inviteCounter));
+        }
+    }
+
     @Override
     public void saveComplete(String gameName, String host, ArrayList<String> listOfInvitedPlayers) {
         AppManager.getInstance().currentFragment = this;
         String players = "";
         for (int i = 0; i < listOfInvitedPlayers.size(); i++) {
-            players = players.concat(":" + listOfInvitedPlayers.get(i));
+            players = players.concat(listOfInvitedPlayers.get(i) + ":");
+            if(i == listOfInvitedPlayers.size()-1) {
+                // Remove last colon
+                players =  players.substring(0, players.lastIndexOf(":"));
+            }
         }
         //Send request to server
-        String createGameRequest = MessageFormat.format("32:{0}{1}", gameName, players);
+        String createGameRequest = MessageFormat.format("32:{0}:{1}", gameName, players);
         AppManager.getInstance().addClientRequest(createGameRequest);
     }
 
     @Override
+    public void sendDecline(int minusInviteCounter) {
+        inviteCounter -= minusInviteCounter;
+        changeInviteFrame();
+    }
+
+    @Override
+    public void sendAccept(int minusInviteCounter, ArrayList<Room> listOfAccepted) {
+        inviteCounter -= minusInviteCounter;
+        changeInviteFrame();
+
+     //   gameSessionLists.addAll(listOfAccepted);
+     //   gameAdapter.notifyDataSetChanged();
+    }
+
+    @Override
     public void update(int protocolIndex, int gameID, String exceptionMessage) {
+        String gameRoom;
+        String gameState;
+        int roomId;
+        String description;
         switch (protocolIndex) {
             case 15:
                 for (Game game : AppManager.getInstance().gameList) {
-                    if (game.getGameID() == gameID) {
+                    if (game.getGameID() == gameID && game.getPlayerByName(AppManager.getInstance().loggedInUser.getNameID()).participation != PlayerParticipation.HOST) {
                         inviteCounter++;
-                        if (inviteCounter == 0) {
-                            invitationFrame.setVisibility(View.INVISIBLE);
-                            invitationCounter.setText(String.valueOf(inviteCounter));
-                        } else {
-                            invitationFrame.setVisibility(View.VISIBLE);
-                            invitationCounter.setText(String.valueOf(inviteCounter));
-                        }
+                        changeInviteFrame();
+                        break;
+                    }else if (game.getGameID() == gameID){
+                        gameRoom = game.getGameName();
+                        gameState = game.getState().toString();
+                        roomId = game.getGameID();
+                        description = "Waiting for other players to accept";
+                        gameSessionLists.add(new Room(gameRoom, description, gameState, roomId));
+                        gameAdapter.notifyDataSetChanged();
                         break;
                     }
                 }
                 break;
             case 16:
-                String gameRoom = "";
-                String gameState = "";
-                int roomId = 0;
-                String description = "";
                 for (Game game : AppManager.getInstance().gameList) {
                     if (game.getGameID() == gameID) {
+                        Log.i(TAG, "Case: 16 happened!..");
                         gameRoom = game.getGameName();
                         gameState = game.getState().toString();
                         roomId = game.getGameID();
                         description = "A game from server"; // TODO lös något
+                        gameSessionLists.add(new Room(gameRoom, description, gameState, roomId));
+                        //  gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
+                        // recyclerView.setAdapter(gameAdapter);
+                        gameAdapter.notifyDataSetChanged();
                         break;
                     }
                 }
-                Room room = new Room(gameRoom, description, gameState, roomId);
-                Log.e(TAG, "update: " + room.toString());
-                gameSessionLists.add(new Room(gameRoom, description, gameState, roomId));
-                Log.e(TAG, "update: " + gameSessionLists.toString());
+                break;
+            case 21:
 
-                //  gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
-                // recyclerView.setAdapter(gameAdapter);
-                gameAdapter.notifyDataSetChanged();
+                Utilities.toastMessage(getContext(),"Case 21 happend!");
                 break;
             case 40:
                 Log.e(TAG, exceptionMessage);
@@ -276,6 +313,15 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "HomeFragment: In the OnCreate event()");
+        // This callback will only be called when Fragment is at least Started.
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                getActivity().finish();
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+        // The callback can be enabled or disabled here or in handleOnBackPressed()
     }
 
     //4
@@ -326,5 +372,4 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         super.onDetach();
         Log.d(TAG, "HomeFragment: In the onDetach() event");
     }
-
 }

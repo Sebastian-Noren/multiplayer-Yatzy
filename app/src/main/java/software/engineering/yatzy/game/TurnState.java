@@ -6,11 +6,13 @@ public class TurnState {
     private int currentPlayer;
     private int rollTurn;
     private int[] diceValues;
+    public int[] rolledDiceBitMap;
 
     public TurnState(int currentPlayer, int rollTurn, int[] diceValues) {
         this.currentPlayer = currentPlayer;
         this.rollTurn = rollTurn;
         this.diceValues = diceValues;
+        rolledDiceBitMap = new int[]{0, 0, 0, 0, 0};
     }
 
     public TurnState() {
@@ -18,6 +20,7 @@ public class TurnState {
         currentPlayer = -1;
         rollTurn = -1;
         diceValues = new int[]{-1};
+        rolledDiceBitMap = new int[]{0, 0, 0, 0, 0};
     }
 
     public int getCurrentPlayer() {
