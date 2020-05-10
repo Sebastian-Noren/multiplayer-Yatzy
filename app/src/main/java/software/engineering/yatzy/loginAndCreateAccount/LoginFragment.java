@@ -53,7 +53,7 @@ public class LoginFragment extends Fragment implements Updatable {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
         Log.d(tag, "In the LoginFragment");
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
-
+        getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.endColorBar));
         loginBtn = view.findViewById(R.id.loginButton);
         editText_nameID = view.findViewById(R.id.name_id_ed);
         editTextPassword = view.findViewById(R.id.password_edittext);
