@@ -65,6 +65,10 @@ public class AppManager {
     // Searchable client names for creating new game
     public ArrayList<String> searchableNames;
 
+    //variables that hold timer Data
+    public long startTimeMillis;
+    public long finalTimeMillis;
+    public long latency;
     // ============================ SINGLETON =======================================
 
     private AppManager() {
@@ -219,6 +223,10 @@ public class AppManager {
                     break;
                 case "41": // Connection to cloud lost/terminated
                     lostCloudConnection(commands[1]);
+                    break;
+                case "51":
+                    //ping sent from server
+                    calculatePingTimer();
                     break;
                 default:
                     //writeToast("Unknown request from server: " + command);
@@ -742,4 +750,13 @@ public class AppManager {
         }
     }
 
+    public void calculatePingTimer(){
+        finalTimeMillis = System.currentTimeMillis();
+        latency = finalTimeMillis - startTimeMillis;
+        currentFragment.update(51,-1,null);
+    }
+
+    public void startPingTimer(String request){
+        startTimeMillis = System.currentTimeMillis();
+    }
 }
