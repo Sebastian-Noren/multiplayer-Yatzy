@@ -17,7 +17,7 @@
 
     <fragment
         android:id="@+id/navigation_Login"
-        android:name="software.engineering.yatzy.login.LoginFragment"
+        android:name="software.engineering.yatzy.loginAndCreateAccount.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login">
         <action
@@ -54,5 +54,11 @@
         android:name="software.engineering.yatzy.game.EndingGameFragment"
         android:label="GameEnd"
         tools:layout="@layout/fragment_ending"/>
+
+    <fragment
+        android:id="@+id/create_account"
+        android:name="software.engineering.yatzy.loginAndCreateAccount.CreateAccount"
+        android:label="Create Account"
+        tools:layout="@layout/fragment_create_account"/>
 
 </navigation>
