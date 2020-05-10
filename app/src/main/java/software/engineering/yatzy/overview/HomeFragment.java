@@ -205,10 +205,14 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         AppManager.getInstance().currentFragment = this;
         String players = "";
         for (int i = 0; i < listOfInvitedPlayers.size(); i++) {
-            players = players.concat(":" + listOfInvitedPlayers.get(i));
+            players = players.concat(listOfInvitedPlayers.get(i) + ":");
+            if(i == listOfInvitedPlayers.size()-1) {
+                // Remove last colon
+                players =  players.substring(0, players.lastIndexOf(":"));
+            }
         }
         //Send request to server
-        String createGameRequest = MessageFormat.format("32:{0}{1}", gameName, players);
+        String createGameRequest = MessageFormat.format("32:{0}:{1}", gameName, players);
         AppManager.getInstance().addClientRequest(createGameRequest);
     }
 

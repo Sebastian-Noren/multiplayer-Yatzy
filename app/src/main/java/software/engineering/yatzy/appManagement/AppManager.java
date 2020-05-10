@@ -354,7 +354,6 @@ public class AppManager {
         if (appInFocus) {
             currentFragment.update(16, gameID, null);
         }
-
     }
 
     // #18
@@ -554,9 +553,9 @@ public class AppManager {
     private void lostCloudConnection(String cause) {
         gameList.clear();
         universalHighScores.clear();
-
         boolean unintendedClose = cause.equals("unintended");
-        Log.i(TAG, "#41: Connection lost: " + (unintendedClose ? "Unintended" : "Intended") + ". Attempt to regain server connection");
+        Log.i(TAG, "#41: Handling " + (unintendedClose ? "unintended" : "intended") + " server connection loss");
+
         if (unintendedClose) {
             if (networkState == NetworkState.ALLOWED || networkState == NetworkState.ENTERED) {
                 if (isBound) {
@@ -564,7 +563,7 @@ public class AppManager {
                     readUserDataFromCache();
                 }
             } else {
-                bindToService(applicationContext, navController);
+                //bindToService(applicationContext, navController);
             }
         }
     }
@@ -623,15 +622,23 @@ public class AppManager {
                                         }
                                     }
                                 }
-                                if (attempt == 9 && !connected) {
+                                if ((attempt == 9 && !connected)) {
+                                    networkState = NetworkState.LOGIN;
                                     if (appInFocus) {
+                                        navController.navigate(R.id.navigation_Login);
                                         currentFragment.update(40, -1, "Unable to connect to cloud server");
                                     }
                                 }
                             }
                         });
-                    }
-                    if (connected || networkService.socketException) {
+                    } if (connected) {
+                        return;
+                    } else if(networkService.socketException) {
+                        networkState = NetworkState.LOGIN;
+                        if (appInFocus) {
+                            navController.navigate(R.id.navigation_Login);
+                            currentFragment.update(40, -1, "Unable to connect to cloud server");
+                        }
                         return;
                     }
                 }
