@@ -286,19 +286,19 @@ public class GameFragment extends Fragment implements Updatable {
     //************************************** GRAPHIC/ENGINE CODE BELOW HERE *******************************************************************
 
     private void resetSelectedDice() {
+        initDiceAnimation();
         for (int i = 0; i < diceImages.length; i++) {
             if (dices[i].isSelected()) {
                 diceImages[i].setTranslationX(DICE_START_POSITIONX);
-                initDiceAnimation(i);
             }
         }
     }
 
     private void initDice() {
+        initDiceAnimation();
         if (state == State.NEWPLAYER) {
             for (int i = 0; i < diceImages.length; i++) {
                 diceImages[i].setTranslationX(DICE_START_POSITIONX);
-                initDiceAnimation(i);
                 startFirstDiceAnimation();
                 turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
             }
@@ -307,16 +307,17 @@ public class GameFragment extends Fragment implements Updatable {
             Random rand = new Random();
             for (int i = 0; i < diceImages.length; i++) {
                 diceImages[i].setRotation(rand.nextInt(360));
-                initDiceAnimation(i);
             }
             Log.i(TAG, "InitDice(): 2");
             initDiceGraphicCurrentPlay();
         }
     }
 
-    private void initDiceAnimation(int i) {
-        diceImages[i].setImageResource(R.drawable.roll_dice);
-        diceAnim[i] = (AnimationDrawable) diceImages[i].getDrawable();
+    private void initDiceAnimation() {
+        for (int i = 0; i < diceImages.length; i++) {
+            diceImages[i].setImageResource(R.drawable.roll_dice);
+            diceAnim[i] = (AnimationDrawable) diceImages[i].getDrawable();
+        }
     }
 
     private void startFirstDiceAnimation() {
