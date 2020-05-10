@@ -89,6 +89,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         gameAdapter.setOnItemClickListener(new GameOverviewAdapter.ItemClickListener() {
             @Override
             public void onItemClickListener(int position) {
+
                 // Sends which game index the player chose
                 if (AppManager.getInstance().gameList.get(position).getState() == GameState.PENDING) {
                     Utilities.toastMessage(getContext(), "Need to wait other players to accept!");
@@ -98,6 +99,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                     bundle.putInt("gameToPlay", position);
                     navController.navigate(R.id.navigation_game, bundle);
                 }
+
+
             }
         });
 
@@ -278,6 +281,10 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                         break;
                     }
                 }
+                break;
+            case 21:
+
+                Utilities.toastMessage(getContext(),"Case 21 happend!");
                 break;
             case 40:
                 Log.e(TAG, exceptionMessage);
