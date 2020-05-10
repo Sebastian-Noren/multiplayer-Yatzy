@@ -2,6 +2,7 @@ package software.engineering.yatzy;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -82,5 +83,4 @@ public class MainActivity extends AppCompatActivity {
 
         AppManager.getInstance().unbindFromService();
     }
-
 }
