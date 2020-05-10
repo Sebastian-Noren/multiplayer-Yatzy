@@ -373,7 +373,7 @@ public class AppManager {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
                 for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
-                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? 1 : 0);
+                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? true : false);
                 }
                 break;
             }

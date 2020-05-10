@@ -44,9 +44,15 @@
         tools:layout="@layout/fragment_game"/>
 
     <fragment
-        android:id="@+id/navigation_test"
-        android:name="software.engineering.yatzy.testing.TestFragment"
-        android:label="Testing"
-        tools:layout="@layout/fragment_test"/>
+    android:id="@+id/navigation_test"
+    android:name="software.engineering.yatzy.testing.TestFragment"
+    android:label="Testing"
+    tools:layout="@layout/fragment_test"/>
+
+    <fragment
+        android:id="@+id/navigation_ending"
+        android:name="software.engineering.yatzy.game.EndingGameFragment"
+        android:label="GameEnd"
+        tools:layout="@layout/fragment_ending"/>
 
 </navigation>
