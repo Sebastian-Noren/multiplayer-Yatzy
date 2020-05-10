@@ -372,6 +372,9 @@ public class AppManager {
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
+                for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
+                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? 1 : 0);
+                }
                 break;
             }
         }
@@ -564,6 +567,13 @@ public class AppManager {
                 }
             } else {
                 //bindToService(applicationContext, navController);
+                if(isBound) {
+                    stopServiceThreads();
+                }
+                if(appInFocus) {
+                    currentFragment.update(40, -1, "Unable to connect to cloud server");
+                    //navController.navigate(R.id.navigation_Login);
+                }
             }
         }
     }
@@ -625,8 +635,8 @@ public class AppManager {
                                 if ((attempt == 9 && !connected)) {
                                     networkState = NetworkState.LOGIN;
                                     if (appInFocus) {
-                                        navController.navigate(R.id.navigation_Login);
-                                        currentFragment.update(40, -1, "Unable to connect to cloud server");
+                                        //navController.navigate(R.id.navigation_Login);
+                                        //currentFragment.update(40, -1, "Unable to connect to cloud server");
                                     }
                                 }
                             }
@@ -637,7 +647,7 @@ public class AppManager {
                         networkState = NetworkState.LOGIN;
                         if (appInFocus) {
                             navController.navigate(R.id.navigation_Login);
-                            currentFragment.update(40, -1, "Unable to connect to cloud server");
+                            //currentFragment.update(40, -1, "Unable to connect to cloud server");
                         }
                         return;
                     }

@@ -166,11 +166,13 @@ public class GameFragment extends Fragment implements Updatable {
                         Log.i(TAG, "PLAYING STATE! ");
                         //Will respond with 18
                         StringBuilder rollturnRequest = new StringBuilder("17:" + currentGame.getGameID());
+                        String selectedDiceBitMap = "";
                         for (int i = 0; i < diceImages.length; i++) {
                             if (dices[i].isSelected()) {
-                                rollturnRequest.append(MessageFormat.format(":{0}", i));
+                                rollturnRequest.append(MessageFormat.format(":{0}", "1"));
                                 selectedDiceTemp[i] = true;
                             }else {
+                                rollturnRequest.append(MessageFormat.format(":{0}", "0"));
                                 selectedDiceTemp[i] = false;
                             }
                         }
