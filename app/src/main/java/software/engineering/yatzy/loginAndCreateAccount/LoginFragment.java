@@ -1,5 +1,6 @@
 package software.engineering.yatzy.loginAndCreateAccount;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,14 +12,17 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.Objects;
+import java.util.Timer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
 
 import software.engineering.yatzy.R;
@@ -83,6 +87,7 @@ public class LoginFragment extends Fragment implements Updatable {
         if (protocolIndex == 40) {
             // Display exceptionMessage in label
             login_label.setText(exceptionMessage);
+            login_label.setText(null);
         }
     }
 
@@ -92,18 +97,31 @@ public class LoginFragment extends Fragment implements Updatable {
     }
 
     public void login() {
-        String usernameInput = editText_nameID.getText().toString().trim();
-        String passwordInput = editTextPassword.getText().toString().trim();
+            String usernameInput = editText_nameID.getText().toString().trim();
+            String passwordInput = editTextPassword.getText().toString().trim();
 
-        if (usernameInput.contains(":") || passwordInput.contains(":")) {
-            login_label.setText("Unknown Character ");
-        }
-        if (usernameInput.equals("") || passwordInput.equals("")){
-            login_label.setText("Enter NameID and Password");
-        } else{
-            String loginRequest = "1:" + usernameInput + ":" + passwordInput;
-            AppManager.getInstance().establishCloudServerConnection(loginRequest);
-        }
+            
+            if (usernameInput.contains(":")){
+                editText_nameID.setError("Unknown Character");
+            }else if (passwordInput.contains(":")){
+                editTextPassword.setError("Unknown Character");
+            }else if (usernameInput.isEmpty()){
+                editText_nameID.setError("Enter NameID");
+                if (passwordInput.isEmpty()){
+                    editTextPassword.setError("Enter Password");
+                }
+            }else if (passwordInput.isEmpty()){
+                editTextPassword.setError("Enter Password");
+            }else {
+                String loginRequest = "1:" + usernameInput + ":" + passwordInput;
+                AppManager.getInstance().establishCloudServerConnection(loginRequest);
+            }
+
+
+    }
+
+    public boolean checkSemicolon(String name){
+        return name.contains(":");
     }
 
     // CAN THE BELOW LIFECYCLE METHODS BE REMOVED?

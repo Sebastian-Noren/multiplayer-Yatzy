@@ -54,18 +54,45 @@ public class CreateAccount extends Fragment implements Updatable{
         String pass       = password.getText().toString().trim();
         String retypePass = re_type_password.getText().toString().trim();
 
-        if (name.contains(":")|| name_id.contains(":")|| pass.contains(":")||retypePass.contains(":")){
-            sign_up_label.setText("Unknown Character");
-        }else if (name.equals("") || name_id.equals("")||pass.equals("")||retypePass.equals("")){
-            sign_up_label.setText("The Fields are Empty");
+        //check if there is semicolon and the fields are empty
+        if (name.contains(":")){
+            name_edittext.setError("Unknown Character");
+        }else if (name_id.contains(":")){
+            nameID.setError("Unknown Character");
+        }else if (pass.contains(":")){
+            password.setError("Unknown Character");
+        }else if (retypePass.contains(":")){
+            re_type_password.setError("Unknown Character");
+        }else if (name.isEmpty()){
+            name_edittext.setError("Enter Your name");
+            if (name_id.isEmpty()){
+                nameID.setError("Enter NameID");
+            }
+            if (pass.isEmpty()){
+                password.setError("Enter Password");
+            }
+            if (retypePass.isEmpty()){
+                re_type_password.setError("Enter your Password Again");
+            }
+        }else if (name_id.isEmpty()){
+            nameID.setError("Enter NameID");
+        }else if (pass.isEmpty()){
+            password.setError("Enter Password");
+        }else if (retypePass.isEmpty()){
+            re_type_password.setError("Enter your Password Again");
         }else {
-
+            //from server side
         }
 
     }
+
     @Override
     public void update(int protocolIndex, int gameID, String exceptionMessage) {
 
+        //enter the right index protocol
+        if (protocolIndex == 10) {
+            sign_up_label.setText(exceptionMessage);
+        }
     }
 
     public void closeKeyboard() {
