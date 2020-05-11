@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.game.ChatMessage;
 import software.engineering.yatzy.game.Game;
 import software.engineering.yatzy.game.GameState;
 import software.engineering.yatzy.game.Player;
@@ -66,6 +68,10 @@ public class AppManager {
     // Searchable client names for creating new game
     public ArrayList<String> searchableNames;
 
+    //variables that hold timer Data
+    public long startTimeMillis;
+    public long finalTimeMillis;
+    public long latency;
     // ============================ SINGLETON =======================================
 
     private AppManager() {
@@ -215,11 +221,21 @@ public class AppManager {
                 case "34":
                     updateInvitationReply(commands);
                     break;
+                case "36":
+                    receiveChatMessages(commands);
+                    break;
+                case "38":
+                    receiveOneChatMessage(commands);
+                    break;
                 case "40":
                     exceptionFromCloud(commands[1]);
                     break;
                 case "41": // Connection to cloud lost/terminated
                     lostCloudConnection(commands[1]);
+                    break;
+                case "51":
+                    //ping sent from server
+                    calculatePingTimer();
                     break;
                 default:
                     //writeToast("Unknown request from server: " + command);
@@ -373,7 +389,7 @@ public class AppManager {
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
-                for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
+                for (int bit = 0; bit < game.getTurnState().rolledDiceBitMap.length; bit++) {
                     game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? true : false);
                 }
                 break;
@@ -545,6 +561,64 @@ public class AppManager {
         }
     }
 
+    // #36
+    private void receiveChatMessages(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Receiving list of chat messages");
+        ArrayList<ChatMessage> messageList = new ArrayList<>();
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        String receiveType = commands[++count];
+
+        while (true) {
+            int msgIndex = Integer.parseInt(commands[++count]);
+            String senderName = commands[++count];
+            String msgContent = commands[++count];
+            String timeStamp = commands[++count].replace(";", ":");
+            int replyToMsgIndex = Integer.parseInt(commands[++count]);
+
+            ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
+            messageList.add(msg);
+
+            if (commands[++count].equals("null")) {
+                break;
+            }
+        }
+        switch (receiveType) {
+            case "initialList":
+                getGameByGameID(gameID).setMessages(messageList);
+                break;
+            case "appendList":
+                getGameByGameID(gameID).appendMultipleMessages(messageList);
+                break;
+            default:
+                // Handle??
+                break;
+        }
+        if (appInFocus) {
+            currentFragment.update(36, gameID, null);
+        }
+    }
+
+    // #38
+    private void receiveOneChatMessage(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Receiving one chat messages");
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+
+        int msgIndex = Integer.parseInt(commands[++count]);
+        String senderName = commands[++count];
+        String msgContent = commands[++count];
+        String timeStamp = commands[++count].replace(";", ":");
+        int replyToMsgIndex = Integer.parseInt(commands[++count]);
+
+        ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
+        getGameByGameID(gameID).appendOneMessage(msg);
+
+        if (appInFocus) {
+            currentFragment.update(38, gameID, null);
+        }
+    }
+
     // #40
     private void exceptionFromCloud(String exceptionMessage) {
         Log.i(TAG, "From server: Exception message");
@@ -568,12 +642,15 @@ public class AppManager {
                 }
             } else {
                 //bindToService(applicationContext, navController);
-                if(isBound) {
+                if (isBound) {
                     stopServiceThreads();
                 }
-                if(appInFocus) {
+                if (appInFocus && networkState == NetworkState.UNDEFINED) {
+                    //currentFragment.update(40, -1, "Unable to connect to cloud server");
+                    navController.navigate(R.id.navigation_Login);
+                }
+                if (appInFocus && networkState == NetworkState.LOGIN) {
                     currentFragment.update(40, -1, "Unable to connect to cloud server");
-                    //navController.navigate(R.id.navigation_Login);
                 }
             }
         }
@@ -635,21 +712,14 @@ public class AppManager {
                                 }
                                 if ((attempt == 9 && !connected)) {
                                     networkState = NetworkState.LOGIN;
-                                    if (appInFocus) {
-                                        //navController.navigate(R.id.navigation_Login);
-                                        //currentFragment.update(40, -1, "Unable to connect to cloud server");
-                                    }
                                 }
                             }
                         });
-                    } if (connected) {
+                    }
+                    if (connected) {
                         return;
-                    } else if(networkService.socketException) {
+                    } else if (networkService.socketException) {
                         networkState = NetworkState.LOGIN;
-                        if (appInFocus) {
-                            navController.navigate(R.id.navigation_Login);
-                            //currentFragment.update(40, -1, "Unable to connect to cloud server");
-                        }
                         return;
                     }
                 }
@@ -669,7 +739,7 @@ public class AppManager {
                     objectOutput.writeObject(loggedInUser);
                 } catch (IOException e) {
                     Log.i(TAG, e.getMessage());
-                    //writeToast("Unable to write user tho cache");
+                    //writeToast("Unable to write user to cache");
                 }
             }
         }).start();
@@ -761,4 +831,52 @@ public class AppManager {
         }
     }
 
+    public void calculatePingTimer() {
+        finalTimeMillis = System.currentTimeMillis();
+        latency = finalTimeMillis - startTimeMillis;
+        currentFragment.update(51, -1, null);
+        Log.d("Info", "Latency = " + String.valueOf(latency));
+    }
+
+    public void startPingTimer() {
+        startTimeMillis = System.currentTimeMillis();
+    }
+
+    public void logOutUser() {
+        //set loggedInUser to null values.
+        loggedInUser = new LoggedInUser("", null, 0, 0);
+        writeUserToCache();
+
+        try {
+            String logOutRequest = "3";
+            addClientRequest(logOutRequest);
+        } catch (Exception e) {
+            //Ignore
+        }
+
+        final Handler logOutHandler = new Handler(Looper.getMainLooper());
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    //Ignores since in seperate thread
+                }
+
+                logOutHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (appInFocus && isBound) {
+                            //Stop connection to cloud
+                            networkService.stopConnectionToCloudServer();
+                            //return to loginScreen
+                            navController.navigate(R.id.navigation_Login);
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
 }
