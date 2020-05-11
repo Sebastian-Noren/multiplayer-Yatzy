@@ -224,6 +224,9 @@ public class AppManager {
                 case "41": // Connection to cloud lost/terminated
                     lostCloudConnection(commands[1]);
                     break;
+                case "38":
+                    receiveOneChatMessage(commands);
+                    break;
                 default:
                     //writeToast("Unknown request from server: " + command);
                     break;
@@ -376,7 +379,7 @@ public class AppManager {
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
-                for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
+                for (int bit = 0; bit < game.getTurnState().rolledDiceBitMap.length; bit++) {
                     game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? true : false);
                 }
                 break;
@@ -560,7 +563,7 @@ public class AppManager {
             int msgIndex = Integer.parseInt(commands[++count]);
             String senderName = commands[++count];
             String msgContent = commands[++count];
-            String timeStamp = commands[++count];
+            String timeStamp = commands[++count].replace(";", ":");
             int replyToMsgIndex = Integer.parseInt(commands[++count]);
 
             ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
@@ -581,11 +584,29 @@ public class AppManager {
                 // Handle??
                 break;
         }
-
-        if(appInFocus) {
+        if (appInFocus) {
             currentFragment.update(36, gameID, null);
         }
+    }
 
+    // #38
+    private void receiveOneChatMessage(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Receiving one chat messages");
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+
+        int msgIndex = Integer.parseInt(commands[++count]);
+        String senderName = commands[++count];
+        String msgContent = commands[++count];
+        String timeStamp = commands[++count].replace(";", ":");
+        int replyToMsgIndex = Integer.parseInt(commands[++count]);
+
+        ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
+        getGameByGameID(gameID).appendOneMessage(msg);
+
+        if (appInFocus) {
+            currentFragment.update(38, gameID, null);
+        }
     }
 
     // #40
@@ -611,14 +632,14 @@ public class AppManager {
                 }
             } else {
                 //bindToService(applicationContext, navController);
-                if(isBound) {
+                if (isBound) {
                     stopServiceThreads();
                 }
-                if(appInFocus && networkState == NetworkState.UNDEFINED) {
+                if (appInFocus && networkState == NetworkState.UNDEFINED) {
                     //currentFragment.update(40, -1, "Unable to connect to cloud server");
                     navController.navigate(R.id.navigation_Login);
                 }
-                if(appInFocus && networkState == NetworkState.LOGIN) {
+                if (appInFocus && networkState == NetworkState.LOGIN) {
                     currentFragment.update(40, -1, "Unable to connect to cloud server");
                 }
             }
@@ -684,9 +705,10 @@ public class AppManager {
                                 }
                             }
                         });
-                    } if (connected) {
+                    }
+                    if (connected) {
                         return;
-                    } else if(networkService.socketException) {
+                    } else if (networkService.socketException) {
                         networkState = NetworkState.LOGIN;
                         return;
                     }
