@@ -216,14 +216,14 @@ public class AppManager {
                 case "34":
                     updateInvitationReply(commands);
                     break;
-                case "40":
-                    exceptionFromCloud(commands[1]);
-                    break;
                 case "36":
                     receiveChatMessages(commands);
                     break;
                 case "38":
                     receiveOneChatMessage(commands);
+                    break;
+                case "40":
+                    exceptionFromCloud(commands[1]);
                     break;
                 case "41": // Connection to cloud lost/terminated
                     lostCloudConnection(commands[1]);
