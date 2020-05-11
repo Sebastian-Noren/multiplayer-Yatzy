@@ -18,71 +18,94 @@
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/board" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
+
+    <LinearLayout
+        android:id="@+id/header"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="64dp"
         android:background="@color/colorPrimary"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/tgame_currentTurn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="32dp"
-            android:text="X/3"
-            android:textColor="@color/design_default_color_on_primary"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_weight="0"
+            android:background="@drawable/fragment_background"
+            android:orientation="horizontal">
 
-        <ImageButton
-            android:id="@+id/chatBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginEnd="20dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/tgame_currentTurn"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
-            app:srcCompat="@android:drawable/stat_notify_chat" />
+            <ImageButton
+                android:id="@+id/soundBtn"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="center"
+                android:layout_marginStart="64dp"
+                android:background="@drawable/circle"
+                app:srcCompat="@drawable/sound_on" />
 
-        <ImageButton
-            android:id="@+id/soundBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginStart="32dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
-            app:srcCompat="@android:drawable/ic_lock_silent_mode" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/chatBtn"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="center"
+                android:layout_marginEnd="32dp"
+                android:background="@drawable/circle"
+                app:srcCompat="@drawable/chat_message" />
+
+            <TextView
+                android:id="@+id/tgame_currentTurn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|end"
+                android:layout_marginEnd="32dp"
+                android:text="X/3"
+                android:textColor="@color/design_default_color_on_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:background="@drawable/select_highlight"
+            android:elevation="5dp" />
+
+    </LinearLayout>
+
 
     <ImageView
         android:id="@+id/diceImg1"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_marginTop="96dp"
-        android:layout_marginEnd="48dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="32dp"
         android:padding="3dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cardView"
+        app:layout_constraintTop_toBottomOf="@+id/header"
         app:srcCompat="@drawable/dice_three" />
 
     <ImageView
         android:id="@+id/diceImg5"
         android:layout_width="60dp"
         android:layout_height="60dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
-        android:layout_marginEnd="40dp"
+        android:layout_marginEnd="24dp"
         android:padding="3dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/diceImg4"
         app:srcCompat="@drawable/dice_two" />
 
@@ -90,10 +113,11 @@
         android:id="@+id/diceImg2"
         android:layout_width="60dp"
         android:layout_height="60dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="44dp"
-        android:layout_marginEnd="60dp"
         android:padding="3dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/diceImg1"
         app:srcCompat="@drawable/dice_six" />
 
@@ -101,10 +125,12 @@
         android:id="@+id/diceImg3"
         android:layout_width="60dp"
         android:layout_height="60dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="56dp"
-        android:layout_marginEnd="60dp"
+        android:layout_marginEnd="24dp"
         android:padding="3dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/diceImg2"
         app:srcCompat="@drawable/dice_five" />
 
@@ -112,44 +138,75 @@
         android:id="@+id/diceImg4"
         android:layout_width="60dp"
         android:layout_height="60dp"
+        android:layout_marginStart="12dp"
         android:layout_marginTop="40dp"
-        android:layout_marginEnd="65dp"
         android:padding="3dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/diceImg3"
         app:srcCompat="@drawable/dice_one" />
 
-    <Button
-        android:id="@+id/rollBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="40dp"
-        android:layout_marginBottom="116dp"
-        android:stateListAnimator="@null"
-        android:text="Roll"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:background="@drawable/fragment_background2"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-    <FrameLayout
-        android:layout_width="266dp"
-        android:layout_height="599dp"
+        <View
+            android:id="@+id/divider3"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/select_highlight"
+            android:elevation="5dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/rollBtn"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginRight="24dp"
+                android:background="@drawable/dialog_background"
+                android:stateListAnimator="@null"
+                android:text="Roll" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
+        android:layout_width="wrap_content"
+        android:maxWidth="287dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="32dp"
-        android:background="@color/colorTable"
-        app:layout_constraintBottom_toBottomOf="@+id/ground"
+        android:layout_marginTop="60dp"
+        app:cardBackgroundColor="@color/colorTable"
+        app:cardCornerRadius="10dp"
+        app:cardUseCompatPadding="true"
+        app:cardElevation="2dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/header">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:orientation="horizontal"
+            android:padding="3dp">
 
             <TableLayout
-                android:layout_width="96dp"
-                android:layout_height="match_parent"
-                android:background="@color/colorTable">
+                android:layout_width="100dp"
+                android:layout_height="match_parent">
 
                 <TableRow
                     android:layout_width="match_parent"
@@ -163,7 +220,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
-                        android:text="Players:" />
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:text="Players:"
+                        android:textStyle="bold" />
                 </TableRow>
 
                 <TableRow
@@ -178,6 +238,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Ones" />
                 </TableRow>
 
@@ -193,6 +255,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Twos" />
                 </TableRow>
 
@@ -208,6 +272,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Threes" />
                 </TableRow>
 
@@ -223,6 +289,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Fours" />
                 </TableRow>
 
@@ -238,6 +306,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Fives" />
                 </TableRow>
 
@@ -253,6 +323,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Sixes" />
                 </TableRow>
 
@@ -268,6 +340,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Sub total" />
                 </TableRow>
 
@@ -283,6 +357,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Bonus" />
                 </TableRow>
 
@@ -298,6 +374,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Pair" />
                 </TableRow>
 
@@ -313,6 +391,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="2 Pairs" />
                 </TableRow>
 
@@ -328,6 +408,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="3 of a Kind" />
                 </TableRow>
 
@@ -343,6 +425,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="4 of a Kind" />
                 </TableRow>
 
@@ -358,6 +442,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Small Straight" />
                 </TableRow>
 
@@ -373,6 +459,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Large Straight" />
                 </TableRow>
 
@@ -388,6 +476,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Full House" />
                 </TableRow>
 
@@ -403,6 +493,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Chance" />
                 </TableRow>
 
@@ -418,6 +510,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
                         android:text="Yatzy" />
                 </TableRow>
 
@@ -433,7 +527,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center|start"
-                        android:text="Grand Total" />
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:text="Grand Total"
+                        android:textStyle="bold" />
                 </TableRow>
             </TableLayout>
 
@@ -451,7 +548,7 @@
 
         </LinearLayout>
 
-    </FrameLayout>
+    </androidx.cardview.widget.CardView>
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -463,6 +560,7 @@
         android:layout_marginEnd="8dp"
         android:fillViewport="true"
         android:visibility="invisible"
+        android:elevation="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

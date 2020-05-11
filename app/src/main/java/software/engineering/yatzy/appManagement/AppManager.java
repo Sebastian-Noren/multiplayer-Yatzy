@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.View;
 
 import androidx.navigation.NavController;
 
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.game.ChatMessage;
 import software.engineering.yatzy.game.Game;
 import software.engineering.yatzy.game.GameState;
 import software.engineering.yatzy.game.Player;
@@ -217,6 +219,8 @@ public class AppManager {
                 case "40":
                     exceptionFromCloud(commands[1]);
                     break;
+                case "36":
+                    receiveChatMessages(commands);
                 case "41": // Connection to cloud lost/terminated
                     lostCloudConnection(commands[1]);
                     break;
@@ -354,7 +358,6 @@ public class AppManager {
         if (appInFocus) {
             currentFragment.update(16, gameID, null);
         }
-
     }
 
     // #18
@@ -373,6 +376,9 @@ public class AppManager {
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
+                for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
+                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? true : false);
+                }
                 break;
             }
         }
@@ -440,7 +446,7 @@ public class AppManager {
             if (commands[++count].equals("null")) {
                 break;
             }
-            count++;
+            // count++; // ??
         }
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
@@ -542,6 +548,46 @@ public class AppManager {
         }
     }
 
+    // #36
+    private void receiveChatMessages(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Receiving list of chat messages");
+        ArrayList<ChatMessage> messageList = new ArrayList<>();
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        String receiveType = commands[++count];
+
+        while (true) {
+            int msgIndex = Integer.parseInt(commands[++count]);
+            String senderName = commands[++count];
+            String msgContent = commands[++count];
+            String timeStamp = commands[++count];
+            int replyToMsgIndex = Integer.parseInt(commands[++count]);
+
+            ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
+            messageList.add(msg);
+
+            if (commands[++count].equals("null")) {
+                break;
+            }
+        }
+        switch (receiveType) {
+            case "initialList":
+                getGameByGameID(gameID).setMessages(messageList);
+                break;
+            case "appendList":
+                getGameByGameID(gameID).appendMultipleMessages(messageList);
+                break;
+            default:
+                // Handle??
+                break;
+        }
+
+        if(appInFocus) {
+            currentFragment.update(36, gameID, null);
+        }
+
+    }
+
     // #40
     private void exceptionFromCloud(String exceptionMessage) {
         Log.i(TAG, "From server: Exception message");
@@ -554,9 +600,9 @@ public class AppManager {
     private void lostCloudConnection(String cause) {
         gameList.clear();
         universalHighScores.clear();
-
         boolean unintendedClose = cause.equals("unintended");
-        Log.i(TAG, "#41: Connection lost: " + (unintendedClose ? "Unintended" : "Intended") + ". Attempt to regain server connection");
+        Log.i(TAG, "#41: Handling " + (unintendedClose ? "unintended" : "intended") + " server connection loss");
+
         if (unintendedClose) {
             if (networkState == NetworkState.ALLOWED || networkState == NetworkState.ENTERED) {
                 if (isBound) {
@@ -564,7 +610,17 @@ public class AppManager {
                     readUserDataFromCache();
                 }
             } else {
-                bindToService(applicationContext, navController);
+                //bindToService(applicationContext, navController);
+                if(isBound) {
+                    stopServiceThreads();
+                }
+                if(appInFocus && networkState == NetworkState.UNDEFINED) {
+                    //currentFragment.update(40, -1, "Unable to connect to cloud server");
+                    navController.navigate(R.id.navigation_Login);
+                }
+                if(appInFocus && networkState == NetworkState.LOGIN) {
+                    currentFragment.update(40, -1, "Unable to connect to cloud server");
+                }
             }
         }
     }
@@ -623,15 +679,15 @@ public class AppManager {
                                         }
                                     }
                                 }
-                                if (attempt == 9 && !connected) {
-                                    if (appInFocus) {
-                                        currentFragment.update(40, -1, "Unable to connect to cloud server");
-                                    }
+                                if ((attempt == 9 && !connected)) {
+                                    networkState = NetworkState.LOGIN;
                                 }
                             }
                         });
-                    }
-                    if (connected || networkService.socketException) {
+                    } if (connected) {
+                        return;
+                    } else if(networkService.socketException) {
+                        networkState = NetworkState.LOGIN;
                         return;
                     }
                 }

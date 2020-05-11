@@ -1,23 +1,30 @@
-package software.engineering.yatzy.login;
+package software.engineering.yatzy.loginAndCreateAccount;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Objects;
+import java.util.Timer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
+
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.appManagement.AppManager;
 import software.engineering.yatzy.appManagement.Updatable;
@@ -29,9 +36,9 @@ public class LoginFragment extends Fragment implements Updatable {
      * - Password: password text field
      * - Exception label (hidden/empty until update() receives an Exception message. Maybe: Only dsiplay for 4-5 sec. Red color font?)
      * - Login button (call to method: login)
-     *
+     * <p>
      * - Create account button (to implement later). Maybe direct to a pop-up
-     *
+     * <p>
      * Text field & password should not accept colons ":" or be empty: string.trim().isEmpty()
      */
 
@@ -40,25 +47,34 @@ public class LoginFragment extends Fragment implements Updatable {
     private NavController navController;
     private EditText editText_nameID, editTextPassword;
     private TextView login_label;
+    private ImageView createAccount_imageView;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
         Log.d(tag, "In the LoginFragment");
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
-
+        getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.endColorBar));
         loginBtn = view.findViewById(R.id.loginButton);
         editText_nameID = view.findViewById(R.id.name_id_ed);
         editTextPassword = view.findViewById(R.id.password_edittext);
         login_label = view.findViewById(R.id.login_label);
+        createAccount_imageView = view.findViewById(R.id.create_account);
 
         // Report currently displayed fragment to AppManager. Maybe from onViewCreated?
         AppManager.getInstance().currentFragment = this;
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                    login();
+            public void onClick(View view) {
+                login();
+                closeKeyboard();
+            }
+        });
 
+        createAccount_imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                navController.navigate(R.id.create_account);
             }
         });
 
@@ -68,28 +84,47 @@ public class LoginFragment extends Fragment implements Updatable {
     @Override
     public void update(int protocolIndex, int gameID, String exceptionMessage) {
         // If exception message (ex invalid login attempt or unable to connect to Server)
-        if(protocolIndex == 40) {
+        if (protocolIndex == 40) {
             // Display exceptionMessage in label
             login_label.setText(exceptionMessage);
+            login_label.setText(null);
         }
+    }
+
+    public void closeKeyboard() {
+        editText_nameID.onEditorAction(EditorInfo.IME_ACTION_DONE);
+        editTextPassword.onEditorAction(EditorInfo.IME_ACTION_DONE);
     }
 
     public void login() {
-        String nameID = editText_nameID.getText().toString().trim(); // Get from text field
-        String password = editTextPassword.getText().toString().trim(); // Get from password text field
+            String usernameInput = editText_nameID.getText().toString().trim();
+            String passwordInput = editTextPassword.getText().toString().trim();
 
-        if (nameID.equals("") || password.equals("")){
-            login_label.setText("Enter NameID and Password");
-        }else if (nameID.equals(":") || password.equals(":")){
-            login_label.setText("Unknown Character ");
-        }else {
-            String loginRequest = "1:" + nameID + ":" + password;
-            AppManager.getInstance().establishCloudServerConnection(loginRequest);
-        }
+            
+            if (usernameInput.contains(":")){
+                editText_nameID.setError("Unknown Character");
+            }else if (passwordInput.contains(":")){
+                editTextPassword.setError("Unknown Character");
+            }else if (usernameInput.isEmpty()){
+                editText_nameID.setError("Enter NameID");
+                if (passwordInput.isEmpty()){
+                    editTextPassword.setError("Enter Password");
+                }
+            }else if (passwordInput.isEmpty()){
+                editTextPassword.setError("Enter Password");
+            }else {
+                String loginRequest = "1:" + usernameInput + ":" + passwordInput;
+                AppManager.getInstance().establishCloudServerConnection(loginRequest);
+            }
+
+
+    }
+
+    public boolean checkSemicolon(String name){
+        return name.contains(":");
     }
 
     // CAN THE BELOW LIFECYCLE METHODS BE REMOVED?
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -102,36 +137,43 @@ public class LoginFragment extends Fragment implements Updatable {
         super.onAttach(context);
         Log.d(tag, "LoginFragment: In the onAttach() event");
     }
+
     //2
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(tag, "LoginFragment: In the OnCreate event()");
+
     }
+
     //4
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.d(tag, "LoginFragment: In the onActivityCreated() event");
     }
+
     //5
     @Override
     public void onStart() {
         super.onStart();
         Log.d(tag, "LoginFragment: In the onStart() event");
     }
+
     //6
     @Override
     public void onResume() {
         super.onResume();
         Log.d(tag, "LoginFragment: In the onResume() event");
     }
+
     //7
     @Override
     public void onPause() {
         super.onPause();
         Log.d(tag, "LoginFragment: In the onPause() event");
     }
+
     //8
     @Override
     public void onStop() {
@@ -145,6 +187,7 @@ public class LoginFragment extends Fragment implements Updatable {
         super.onDestroy();
         Log.d(tag, "LoginFragment: In the onDestroy() event");
     }
+
     //11
     @Override
     public void onDetach() {

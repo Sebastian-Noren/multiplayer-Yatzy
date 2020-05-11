@@ -1,10 +1,13 @@
 package software.engineering.yatzy.game;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,13 +77,13 @@ public class GameFragment extends Fragment implements Updatable {
     private int tableRowIndex;
     private int lastplayer;
     private ArrayList<TableLayout> tables;
+    private int gameIndex;
 
-    private Dice[] dices = {new Dice(DiceName.DICE1, true, 0, false), new Dice(DiceName.DICE2, true, 0, false),
-            new Dice(DiceName.DICE3, true, 0, false), new Dice(DiceName.DICE4, true, 0, false),
-            new Dice(DiceName.DICE5, true, 0, false)};
+    private Dice[] dices = {new Dice(DiceName.DICE1, 0, false), new Dice(DiceName.DICE2,0, false),
+            new Dice(DiceName.DICE3, 0, false), new Dice(DiceName.DICE4, 0, false),
+            new Dice(DiceName.DICE5, 0, false)};
     // Temp variable
     private boolean scoreHasBeenPlaced = false;
-    private int gameIndex;
 
     // The Update method
     @Override
@@ -92,33 +95,47 @@ public class GameFragment extends Fragment implements Updatable {
                     currentGame.setTurnState(AppManager.getInstance().getGameByGameID(specifier).getTurnState());
                     lastplayer = currentGame.getTurnState().getCurrentPlayer();
                     Log.e(TAG, "onCreateView: " + currentGame.toString());
+                    turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
+                    checkSelectedDice();
                     resetSelectedDice();
                     rollAgainDiceAnimation();
-                    turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn()+1)));
                 }
                 break;
             case 20:
                 if (specifier == currentGame.getGameID()){
                     Log.i(TAG,String.valueOf(lastplayer));
-                    Utilities.toastMessage(getContext(),"Protocol 18:");
+                    Utilities.toastMessage(getContext(),"Protocol 20:");
                     for (int i = 1; i < tables.get(lastplayer).getChildCount(); i++) {
                         TableRow row = (TableRow) tables.get(lastplayer).getChildAt(i);
                         TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
-                        cellText.setText(String.valueOf(currentGame.getPlayer(lastplayer).getScoreBoardElement(i-1)));
+                        if (currentGame.getPlayer(lastplayer).getScoreBoardElement(i - 1) == -1){
+                            cellText.setText("");
+                        }else {
+                            cellText.setText(String.valueOf(currentGame.getPlayer(lastplayer).getScoreBoardElement(i - 1)));
+                        }
                     }
                     removeLastCurrentPlayersTable(lastplayer);
                     currentGame.setTurnState(AppManager.getInstance().getGameByGameID(specifier).getTurnState());
                     setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
                     Log.e(TAG, "onCreateView: " + currentGame.toString());
-                    turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
                     checkIfPlayerIsAllowedToPlay();
                 }
                 break;
-            case 36:
+            case 22:
+                if (specifier == currentGame.getGameID()) {
+                    Utilities.toastMessage(getContext(), "Protocol 22:");
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("gameEnded",gameIndex);
+                    navController.navigate(R.id.navigation_ending, bundle);
+                }
+
+                break;
+             case 36:
                 //message list
                 //chatList.get()
                 //chatAdapter.notifyDataSetChanged();
-                break;
+            break;
+            
             case 40:
                 Log.e(TAG, exceptionMessage);
                 break;
@@ -128,11 +145,22 @@ public class GameFragment extends Fragment implements Updatable {
         }
     }
 
+    private void checkSelectedDice(){
+        for (int i = 0; i < diceImages.length; i++) {
+            if (currentGame.getTurnState().getDiceBitMapElement(i)) {
+                dices[i].setSelected(true);
+            }else {
+                dices[i].setSelected(false);
+            }
+        }
+    }
+
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_game, container, false);
         Log.d(TAG, "In the GameFragment");
         AppManager.getInstance().currentFragment = this;
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
+        getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.endColorBar));
 
 
         // Init all views in the game
@@ -150,15 +178,10 @@ public class GameFragment extends Fragment implements Updatable {
 
 
         Log.e(TAG, "onCreateView: " + currentGame.toString());
-        AppManager.getInstance().currentFragment = this;
 
-        checkIfPlayerIsAllowedToPlay();
-
-        initDice();
         addTable(getContext(), view);
         setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
-        turnStateText.setText(MessageFormat.format("{0}/3", currentGame.getTurnState().getRollTurn()));
-
+        checkIfPlayerIsAllowedToPlay();
 
         // Roll button
         rollButton.setOnClickListener(new View.OnClickListener() {
@@ -169,17 +192,16 @@ public class GameFragment extends Fragment implements Updatable {
                 switch (state) {
                     case NEWPLAYER:
                         Log.i(TAG, "NEW PLAYER STATE! ");
-                     //   turn = currentGame.getTurnState().getRollTurn();
-                        startFirstDiceAnimation();
-                      //  turn++;
-                        turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn()+1)));
                         break;
                     case PLAYING:
                         Log.i(TAG, "PLAYING STATE! ");
+                        //Will respond with 18
                         StringBuilder rollturnRequest = new StringBuilder("17:" + currentGame.getGameID());
                         for (int i = 0; i < diceImages.length; i++) {
                             if (dices[i].isSelected()) {
-                                rollturnRequest.append(MessageFormat.format(":{0}", i));
+                                rollturnRequest.append(MessageFormat.format(":{0}", "1"));
+                            }else {
+                                rollturnRequest.append(MessageFormat.format(":{0}", "0"));
                             }
                         }
                         AppManager.getInstance().addClientRequest(rollturnRequest.toString().trim());
@@ -192,6 +214,7 @@ public class GameFragment extends Fragment implements Updatable {
                         Log.i(TAG, "END TURN STATE! ");
                         AppManager.getInstance().addClientRequest(requestToServer);
                         deselectAllDice();
+                        resetColors();
                         rollButton.setEnabled(false);
                         break;
                     default:
@@ -206,12 +229,14 @@ public class GameFragment extends Fragment implements Updatable {
             public void onClick(View v) {
                 if (soundEngine.isSoundOn()) {
                     soundEngine.pauseGameBgSound();
+                    soundButton.setImageResource(R.drawable.sound_off);
                 } else {
                     soundEngine.resumeGameBgSound();
+                    soundButton.setImageResource(R.drawable.sound_on);
                 }
             }
         });
-//lol
+
         //TODO Implement chat etc
         chatButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -286,6 +311,8 @@ public class GameFragment extends Fragment implements Updatable {
         }else {
             rollButton.setEnabled(false);
         }
+        turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
+        initDice();
     }
 
     //************************************** GRAPHIC/ENGINE CODE BELOW HERE *******************************************************************
@@ -293,33 +320,36 @@ public class GameFragment extends Fragment implements Updatable {
     private void resetSelectedDice() {
         for (int i = 0; i < diceImages.length; i++) {
             if (dices[i].isSelected()) {
+                diceImages[i].setImageResource(R.drawable.roll_dice);
+                diceAnim[i] = (AnimationDrawable) diceImages[i].getDrawable();
                 diceImages[i].setTranslationX(DICE_START_POSITIONX);
-                initDiceAnimation(i);
             }
         }
     }
 
     private void initDice() {
-        if (state == State.NEWPLAYER) {
-            for (int i = 0; i < diceImages.length; i++) {
-                diceImages[i].setTranslationX(DICE_START_POSITIONX);
-                initDiceAnimation(i);
+        initDiceAnimation();
+        if (state == State.NEWPLAYER ||currentGame.getTurnState().getRollTurn() == 0) {
+            for (ImageView diceImage : diceImages) {
+                diceImage.setTranslationX(DICE_START_POSITIONX);
+                startFirstDiceAnimation();
             }
             Log.i(TAG, "InitDice(): 1");
         } else {
             Random rand = new Random();
-            for (int i = 0; i < diceImages.length; i++) {
-                diceImages[i].setRotation(rand.nextInt(360));
-                initDiceAnimation(i);
+            for (ImageView diceImage : diceImages) {
+                diceImage.setRotation(rand.nextInt(360));
             }
             Log.i(TAG, "InitDice(): 2");
             initDiceGraphicCurrentPlay();
         }
     }
 
-    private void initDiceAnimation(int i) {
-        diceImages[i].setImageResource(R.drawable.roll_dice);
-        diceAnim[i] = (AnimationDrawable) diceImages[i].getDrawable();
+    private void initDiceAnimation() {
+        for (int i = 0; i < diceImages.length; i++) {
+            diceImages[i].setImageResource(R.drawable.roll_dice);
+            diceAnim[i] = (AnimationDrawable) diceImages[i].getDrawable();
+        }
     }
 
     private void startFirstDiceAnimation() {
@@ -375,7 +405,7 @@ public class GameFragment extends Fragment implements Updatable {
                 deselectAllDice();
                 rollButton.setEnabled(true);
                 //When 3 turns ends and move to another player
-                if (currentGame.getTurnState().getRollTurn() > 1 && !scoreHasBeenPlaced) {
+                if (currentGame.getTurnState().getRollTurn() > 2 && !scoreHasBeenPlaced) {
                     rollButton.setEnabled(false);
                     state = State.PLACE_SCORE;
                     Log.i(TAG, "Init State: " + state);
@@ -384,27 +414,15 @@ public class GameFragment extends Fragment implements Updatable {
         }).start();
     }
 
-/*
-    //Dice roll algorithm
-    private int[] diceRollAlgorithm() {
-        SecureRandom rand = new SecureRandom();
-        int[] temp = new int[5];
-        for (int i = 0; i < temp.length; i++) {
-            temp[i] = (rand.nextInt(6)) + 1;
-        }
-        return temp;
-    }
-*/
-
     //Set dice graphic as the dice values.
     private void updateDiceGraphic() {
         for (int i = 0; i < diceImages.length; i++) {
             if (state == State.NEWPLAYER) {
-                Log.i(TAG, "Update graphic: 1");
+                Log.i(TAG, "Update graphic: new Player");
                 dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             } else if (dices[i].isSelected() && state == State.PLAYING) {
-                Log.i(TAG, "Update graphic: 2");
+                Log.i(TAG, "Update graphic: Playing");
                 dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             }
@@ -444,14 +462,19 @@ public class GameFragment extends Fragment implements Updatable {
         }
     }
 
+    private void resetColors(){
+        int x = currentGame.getTurnState().getCurrentPlayer();
+        for (int i = 1; i < tables.get(x).getChildCount(); i++) {
+            TableRow row = (TableRow) tables.get(x).getChildAt(i);
+            row.setBackgroundColor(Color.TRANSPARENT);
+        }
+    }
+
     // Check rules
     private void checkRules() {
         int x = currentGame.getTurnState().getCurrentPlayer();
         GameRules rules = new GameRules();
-
         int[] diceRule = new int[5];
-        //    int[] diceRule = {5, 6, 6, 2, 1};
-
         for (int i = 0; i < diceImages.length; i++) {
             if (dices[i].isSelected()) {
                 diceRule[i] = dices[i].getDiceValue();
@@ -612,6 +635,21 @@ public class GameFragment extends Fragment implements Updatable {
 
     }
 
+    private int calculateSubSum(){
+        int sum = 0;
+        for (int i = 1; i < 7; i++) {
+            TableRow row = (TableRow) tables.get(lastplayer).getChildAt(i);
+            TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
+            try {
+                sum += Integer.parseInt(cellText.getText().toString());
+            }catch (NumberFormatException e){
+                sum +=0;
+                Log.e(TAG,e.getMessage());
+            }
+        }
+        return sum;
+    }
+
     // Calculated place score
     private int calculateScoreValue(int index) {
         switch (index) {
@@ -653,7 +691,6 @@ public class GameFragment extends Fragment implements Updatable {
                 return 20;
             case 15:
                 //                  Log.i(TAG, "Full House");
-
                 break;
             case 16:
                 //                  Log.i(TAG, "Chance");
@@ -690,6 +727,7 @@ public class GameFragment extends Fragment implements Updatable {
         // convert to DPI (85 id DPI size wanted)
         final float scale = Objects.requireNonNull(getContext()).getResources().getDisplayMetrics().density;
         int pixels = (int) (85 * scale + 0.5f);
+        int padding = (int) (3 * scale + 0.5f);
 
         LinearLayout l = view.findViewById(R.id.tables_players);
         tables = new ArrayList<>();
@@ -716,6 +754,8 @@ public class GameFragment extends Fragment implements Updatable {
             headerPlayerName.setLayoutParams(rowParams); // TableRow is the parent view
             headerPlayerName.setText(currentGame.getPlayer(i).getName());
             headerPlayerName.setGravity(Gravity.CENTER);
+            headerPlayerName.setPadding(0,padding,0,padding);
+            headerPlayerName.setTypeface(null, Typeface.BOLD);
 
             // add textView item in the header row
             rowHeader.addView(headerPlayerName);
@@ -732,6 +772,8 @@ public class GameFragment extends Fragment implements Updatable {
                 TextView scoreTextField = new TextView(context);
                 scoreTextField.setLayoutParams(rowParams); // TableRow is the parent view
                 scoreTextField.setGravity(Gravity.CENTER);
+                scoreTextField.setPadding(0,padding,0,padding);
+
 
                 if (currentGame.getPlayer(i).getScoreBoardElement(f) == -1){
                     scoreTextField.setText("");
@@ -753,6 +795,11 @@ public class GameFragment extends Fragment implements Updatable {
 
                             TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
                             cellText.setText(String.valueOf(calculateScoreValue(tableRowIndex)));
+
+                            TableRow subSum = (TableRow) tableLayout.getChildAt(7);
+                            TextView subSumCellText = (TextView) subSum.getChildAt(0);
+                            subSumCellText.setText(String.valueOf(calculateSubSum()));
+
                             scoreHasBeenPlaced = true;
                             rollButton.setEnabled(true);
                             rollButton.setText("OK");
@@ -762,11 +809,13 @@ public class GameFragment extends Fragment implements Updatable {
                 });
                 tableRow.setClickable(false);
                 // add row to table
-                tableRow.setTag(f);
                 tableLayout.addView(tableRow);
             }
             // add new table in array of tables
             tables.add(tableLayout);
+            TableRow subSum = (TableRow) tables.get(i).getChildAt(7);
+            TextView subSumCellText = (TextView) subSum.getChildAt(0);
+            subSumCellText.setText(String.valueOf(calculateSubSum()));
         }
         // Add all tables in the linearLayout view
         for (TableLayout layout : tables) {
@@ -1013,12 +1062,12 @@ public class GameFragment extends Fragment implements Updatable {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "GameFragment: In the OnCreate event()");
-        Log.d(TAG, "HomeFragment: In the OnCreate event()");
         // This callback will only be called when Fragment is at least Started.
         OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
             @Override
             public void handleOnBackPressed() {
                 navController.navigate(R.id.navigation_main);
+                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
