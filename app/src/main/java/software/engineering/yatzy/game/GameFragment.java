@@ -143,7 +143,13 @@ public class GameFragment extends Fragment implements Updatable {
                         chatAdapter.notifyDataSetChanged();
 
                     }
-                    //chatAdapter.notifyDataSetChanged();
+                    recyclerViewChat.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            recyclerViewChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+
+                        }
+                    });
 
                 }
                 break;
@@ -154,9 +160,20 @@ public class GameFragment extends Fragment implements Updatable {
                     ChatMessage message = AppManager.getInstance().getGameByGameID(currentGame.getGameID()).messages.get(latest);
 
                     chatList.add(message);
-                    chatAdapter.notifyDataSetChanged();
+                    chatAdapter.notifyItemInserted(latest);
+
+                    recyclerViewChat.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            recyclerViewChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+
+                        }
+                    });
 
                 }
+
+                break;
+            case 392:
 
                 break;
             case 40:
@@ -893,23 +910,16 @@ public class GameFragment extends Fragment implements Updatable {
                 if (message != null && !TextUtils.isEmpty(message)) {
 
                     if (doubleClicked) {
-                        // String[] response = chatList.get(positionClicked).split(":");
 
                         int replyToIndex = chatList.get(positionClicked).msgIndex;
 
                         AppManager.getInstance().addClientRequest("37:" + currentGame.getGameID() + ":" + message + ":" + replyToIndex);
-                        //String[] currentSender = message.split(":");
 
-                        //TODO REMOVE ALIREPLY! and WHOISSENDING
-                        //AliReply:whoIsReplying:Towhom:theirMessageWeReplyTo:OurReplyMessage
-                        // chatList.add("AliReply:" + AppManager.getInstance().loggedInUser.getNameID() + ":" + response[0] + ":" + response[1] + ":" + " " + message + ":" + currentTime);
 
                         editTextChat.setText("");
                         editTextChat.setHint("");
 
                         doubleClicked = false;
-
-                        //editTextChat.setBackgroundColor(editTextChat.get);
 
                         chatAdapter.notifyDataSetChanged();
 
@@ -933,6 +943,7 @@ public class GameFragment extends Fragment implements Updatable {
         //add array to chatAdapter
         chatAdapter = new ChatAdapter(chatList);
         recyclerViewChat.setAdapter(chatAdapter);
+
 
         //if we  double click the text
         chatAdapter.setOnItemClickListener(new ChatAdapter.ItemClickListener() {
@@ -959,25 +970,25 @@ public class GameFragment extends Fragment implements Updatable {
 
                     // When we have removed our message, it's no longer activated, therefor we cant respond or double
                     //click the removed text (does not work without this line)
-                    if (linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_right).isActivated()) {
+                    //if (linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_right).isActivated()) {
 
-                        //currently clicked item will start animation for itself
-                        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
-                        linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_left).startAnimation(animation);
+                    //currently clicked item will start animation for itself
+                    Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
+                    linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_left).startAnimation(animation);
 
-                        //When double clicked this is set to true
-                        //so that next time we double click it will go to the if statement above and reset
-                        //settings meaning we don't want to make a reply.
-                        ignore = true;
+                    //When double clicked this is set to true
+                    //so that next time we double click it will go to the if statement above and reset
+                    //settings meaning we don't want to make a reply.
+                    ignore = true;
 
-                        Toast.makeText(getActivity(), "Double clicked", Toast.LENGTH_SHORT).show();
-                        doubleClicked = true;
-                        positionClicked = position;
+                    Toast.makeText(getActivity(), "Double clicked", Toast.LENGTH_SHORT).show();
+                    doubleClicked = true;
+                    positionClicked = position;
 
-                        //name of person replying to
-                        String responseName = chatList.get(positionClicked).senderName;
-                        editTextChat.setHint("Reply to " + responseName + ":");
-                    }
+                    //name of person replying to
+                    String responseName = chatList.get(positionClicked).senderName;
+                    editTextChat.setHint("Reply to " + responseName + ":");
+                    // }
 
                 }
                 //1. first time after the if statement fail, we go down here and set lastTime to be curreTime variable
@@ -1013,7 +1024,7 @@ public class GameFragment extends Fragment implements Updatable {
                 switch (direction) {
                     case ItemTouchHelper.LEFT:
 
-                        AppManager.getInstance().addClientRequest("39a:" + currentGame.getGameID() + ":" + chatList.get(position));
+                        AppManager.getInstance().addClientRequest("391:" + currentGame.getGameID() + ":" + chatList.get(position));
 
 //                        //Instead we will send this to server, and it will remove this position in a general method that
 //                        //all other users will also use so this specific position is deleted
