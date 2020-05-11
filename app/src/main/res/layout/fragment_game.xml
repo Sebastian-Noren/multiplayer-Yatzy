@@ -155,8 +155,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textViewHeader"
@@ -170,8 +170,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView1"
@@ -185,8 +185,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView2"
@@ -200,8 +200,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView3"
@@ -215,8 +215,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView4"
@@ -230,8 +230,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView5"
@@ -245,8 +245,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView6"
@@ -260,8 +260,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView7"
@@ -275,8 +275,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView8"
@@ -290,8 +290,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView9"
@@ -305,8 +305,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView10"
@@ -320,8 +320,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView11"
@@ -335,8 +335,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/invitation_counter"
@@ -350,8 +350,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView13"
@@ -365,8 +365,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView14"
@@ -380,8 +380,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView15"
@@ -395,8 +395,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView16"
@@ -410,8 +410,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView17"
@@ -425,8 +425,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingLeft="4dp"
-                    android:background="@drawable/row_border">
+                    android:background="@drawable/row_border"
+                    android:paddingLeft="4dp">
 
                     <TextView
                         android:id="@+id/textView18"
@@ -453,13 +453,15 @@
 
     </FrameLayout>
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/chat_window"
         android:layout_width="0dp"
-        android:layout_height="750dp"
+        android:layout_height="500dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:fillViewport="true"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -467,7 +469,7 @@
         app:layout_constraintTop_toBottomOf="@+id/constraintLayout">
 
         <include
-            layout="@layout/fragment_test"
+            layout="@layout/chat_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_constraintBottom_toBottomOf="parent"

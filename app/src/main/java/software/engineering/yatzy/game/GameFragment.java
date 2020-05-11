@@ -3,24 +3,32 @@ package software.engineering.yatzy.game;
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.animation.BounceInterpolator;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import java.security.SecureRandom;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -31,6 +39,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import software.engineering.yatzy.R;
 import software.engineering.yatzy.Utilities;
 import software.engineering.yatzy.appManagement.AppManager;
@@ -102,6 +114,11 @@ public class GameFragment extends Fragment implements Updatable {
                     checkIfPlayerIsAllowedToPlay();
                 }
                 break;
+            case 36:
+                //message list
+                //chatList.get()
+                //chatAdapter.notifyDataSetChanged();
+                break;
             case 40:
                 Log.e(TAG, exceptionMessage);
                 break;
@@ -117,8 +134,11 @@ public class GameFragment extends Fragment implements Updatable {
         AppManager.getInstance().currentFragment = this;
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
 
+
         // Init all views in the game
         initViews(view);
+        //init chat
+        initChat(view);
 
         //Start game sound
         soundEngine.createApplicationSound();
@@ -127,6 +147,8 @@ public class GameFragment extends Fragment implements Updatable {
         //Get the game user clicked on and get it from games list.
         gameIndex = getArguments().getInt("gameToPlay");
         currentGame = AppManager.getInstance().gameList.get(gameIndex);
+
+
         Log.e(TAG, "onCreateView: " + currentGame.toString());
         AppManager.getInstance().currentFragment = this;
 
@@ -767,6 +789,179 @@ public class GameFragment extends Fragment implements Updatable {
     //************************************** TABLE CODE END HERE *******************************************************************
 
     //************************************** CHAT CODE BELOW HERE *******************************************************************
+    final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+    private View chatLayout;
+    private RecyclerView recyclerViewChat;
+    private Button send;
+    private EditText editTextChat;
+    private ChatAdapter chatAdapter;
+    private ArrayList<String> chatList = new ArrayList<>();
+    public static boolean doubleClicked = false;
+    public static int positionClicked;
+    private boolean ignore = false;
+
+    public void initChat(View view){
+        recyclerViewChat = view.findViewById(R.id.rv_chat);
+        recyclerViewChat.setLayoutManager(linearLayoutManager);
+
+        editTextChat = view.findViewById(R.id.chat_box_area);
+        send = view.findViewById(R.id.btn_send);
+
+        send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+
+                //Should change this since we are sending it to server and then recieving it
+                String message = editTextChat.getText().toString().trim();
+
+                if (message != null && !TextUtils.isEmpty(message)) {
+
+                    if (doubleClicked) {
+                        String[] response = chatList.get(positionClicked).split(":");
+                        //String[] currentSender = message.split(":");
+
+                        //TODO REMOVE ALIREPLY! and WHOISSENDING
+                        //AliReply:whoIsReplying:Towhom:theirMessageWeReplyTo:OurReplyMessage
+                        chatList.add("AliReply:" + AppManager.getInstance().loggedInUser.getNameID() + ":" + response[0] + ":" + response[1] + ":" + " " + message + ":" + currentTime);
+
+                        editTextChat.setText("");
+                        editTextChat.setHint("");
+
+                        doubleClicked = false;
+
+                        //editTextChat.setBackgroundColor(editTextChat.get);
+
+                        chatAdapter.notifyDataSetChanged();
+
+                    } else {
+
+                        //TODO koppla till servern
+                        if(AppManager.getInstance().loggedInUser.getNameID().equals(AppManager.getInstance().loggedInUser.getNameID())){
+                            chatList.add(AppManager.getInstance().loggedInUser.getNameID() + message + ":" + currentTime);
+                            editTextChat.setText("");
+
+                        }
+
+                    }
+
+                    if (chatAdapter != null) {
+                        chatAdapter.notifyDataSetChanged();
+                    }
+                }
+
+            }
+
+        });
+
+        //add array to chatAdapter
+        chatAdapter = new ChatAdapter(chatList);
+        recyclerViewChat.setAdapter(chatAdapter);
+
+        //if we  double click the text
+        chatAdapter.setOnItemClickListener(new ChatAdapter.ItemClickListener() {
+            long lastClickedTimeStamp;
+
+            @Override
+            public void onItemClickListner(int position) {
+                //instantiate a new variable with this current time
+                long nowClickedTime = System.currentTimeMillis();
+
+                //1. first time when clicked, only the time of currentTime (that is much more than getDoubleTapTimeout())
+                //2. next time clicked, currTime is now a new instantiation of time (This happens when we have double clicked)
+                if (nowClickedTime - lastClickedTimeStamp < ViewConfiguration.getDoubleTapTimeout() && !chatList.get(position).startsWith(AppManager.getInstance().loggedInUser.getNameID())) {
+
+                    if (ignore) {
+
+                        //reset settings
+                        doubleClicked = false;
+                        editTextChat.setHint("");
+                        editTextChat.setText("");
+                        ignore = false;
+                        return;
+                    }
+
+                    // When we have removed our message, it's no longer activated, therefor we cant respond or double
+                    //click the removed text (does not work without this line)
+                    if(linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_right).isActivated()){
+
+                    //currently clicked item will start animation for itself
+                    Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
+                    linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_left).startAnimation(animation);
+
+                    //When double clicked this is set to true
+                    //so that next time we double click it will go to the if statement above and reset
+                    //settings meaning we don't want to make a reply.
+                    ignore = true;
+
+                    Toast.makeText(getActivity(), "Double clicked", Toast.LENGTH_SHORT).show();
+                    doubleClicked = true;
+                    positionClicked = position;
+
+                    //name of person replying to
+                    String[] response = chatList.get(positionClicked).split(":");
+                    editTextChat.setHint("Reply to " + response[0] + ":");
+                    }
+
+                }
+                //1. first time after the if statement fail, we go down here and set lastTime to be curreTime variable
+                lastClickedTimeStamp = nowClickedTime;
+
+            }
+        });
+
+        //Swiping functions
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false; //used if we want to re-arrange chat
+            }
+            //TODO change to logged in user
+            //Disable certain directions
+            @Override
+            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                //instead we will get global variable to get current user - this will enable us to only swipe our
+                //recyclerView object/textView/chat
+                if (!chatList.get(viewHolder.getAdapterPosition()).startsWith(AppManager.getInstance().loggedInUser.getNameID())) {
+                    return 0;
+                }
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+
+            //On swipe removes message and replace it with removed message
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+
+                switch (direction) {
+                    case ItemTouchHelper.LEFT:
+                        //TODO
+                        //Instead we will send this to server, and it will remove this position in a general method that
+                        //all other users will also use so this specific position is deleted
+                        chatList.remove(position);
+                        chatAdapter.notifyItemRemoved(position);
+
+                        Toast.makeText(getActivity(), "Message erased! " + chatList.size(), Toast.LENGTH_SHORT).show();
+                        //TODO
+                        //We remove the message and its place we we add
+                        //our own message this is also something that needs
+                        //to be sent to the server and returned back to a method
+                        //that will have the code underneath
+
+                        //adds the message to that same position we removed
+                        chatList.add(position, "delete:");
+                        chatAdapter.notifyDataSetChanged();
+                        break;
+                }
+            }
+        };
+
+        //Attach to the recyclerView
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(recyclerViewChat);
+
+    }
+
 
     private void openChat() {
         isChatOpen = true;
