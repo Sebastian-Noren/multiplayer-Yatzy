@@ -30,6 +30,7 @@ public class MainFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.main_fragment, container, false);
+        getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
         Log.d(tag, "In the MainFragment");
 
 

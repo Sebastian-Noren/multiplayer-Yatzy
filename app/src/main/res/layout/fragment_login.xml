@@ -1,125 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:background="@drawable/lo_signup_background_color_ui"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/lo_signup_background_color_ui">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="233dp"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme" />
 
-    <ScrollView
-        android:id="@+id/scrollview"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/toolbar">
+        android:layout_height="280dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="26dp">
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="20dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="50dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:text="Username"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/name_id_ed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="text" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:text="Password"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/password_edittext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPassword" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cardview"
+            android:layout_alignLeft="@id/cardview"
+            android:layout_alignRight="@id/cardview"
+            android:layout_marginLeft="35dp"
+            android:layout_marginTop="-50dp"
+            android:layout_marginRight="35dp"
+            android:elevation="10dp">
 
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardview"
+            <Button
+                android:id="@+id/loginButton"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="20dp"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingBottom="50dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Username"
-                        android:layout_margin="10dp"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
-
-                    <EditText
-                        android:id="@+id/name_id_ed"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ems="10"
-                        android:inputType="text" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Password"
-                        android:layout_margin="10dp"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
-
-                    <EditText
-                        android:id="@+id/password_edittext"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ems="10"
-                        android:inputType="textPassword" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <RelativeLayout
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/cardview"
-                android:layout_alignLeft="@id/cardview"
-                android:layout_alignRight="@id/cardview"
-                android:layout_marginLeft="35dp"
-                android:layout_marginTop="-50dp"
-                android:layout_marginRight="35dp"
-                android:elevation="10dp">
+                android:background="@drawable/lo_singup_botton_ui"
+                android:onClick="disable"
+                android:text="Login"
+                android:textColor="#fff"
+                android:textSize="20dp"
+                android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/loginButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/lo_singup_botton_ui"
-                    android:text="Login"
-                    android:textColor="#fff"
-                    android:textStyle="bold"
-                    android:textSize="20dp"/>
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignTop="@id/cardview"
-                android:layout_alignRight="@id/cardview"
-                android:layout_marginTop="-20dp"
-                android:layout_marginRight="-20dp"
-                android:elevation="20dp">
-
-                <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/lo_singup_botton_ui"
-                    app:srcCompat="@drawable/ic_add_signup" />
-            </RelativeLayout>
-
-            <TextView
-                android:id="@+id/login_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/cardview"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="10dp"
-                android:textColor="#FF0000"
-                android:textSize="20sp"/>
         </RelativeLayout>
-    </ScrollView>
 
-</RelativeLayout>
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/cardview"
+            android:layout_alignRight="@id/cardview"
+            android:layout_marginTop="-20dp"
+            android:layout_marginRight="-20dp"
+            android:elevation="20dp">
+
+            <ImageView
+                android:id="@+id/create_account"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/lo_singup_botton_ui"
+                app:srcCompat="@drawable/ic_add_signup" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/login_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="548dp"
+        android:textColor="#FF0000"
+        android:textSize="19sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

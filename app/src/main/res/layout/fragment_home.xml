@@ -35,7 +35,7 @@
         app:fabSize="normal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:mipmap/sym_def_app_icon" />
+        app:srcCompat="@drawable/dice_six" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_create_game"
@@ -43,12 +43,12 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
+        app:backgroundTint="@color/colorBlue"
         android:clickable="true"
-        app:backgroundTint="#C62828"
         app:fabSize="normal"
         app:layout_constraintBottom_toTopOf="@+id/fabStart"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:mipmap/sym_def_app_icon" />
+        app:srcCompat="@drawable/dice_one" />
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -58,9 +58,10 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="28dp"
         android:clickable="true"
+        app:backgroundTint="#C62828"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/fabStart"
-        app:srcCompat="@android:mipmap/sym_def_app_icon" />
+        app:srcCompat="@drawable/dice_four" />
 
     <TextView
         android:id="@+id/text_create_game"
@@ -68,11 +69,11 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="119dp"
-        android:background="#383535"
-        android:padding="2dp"
+        android:background="@drawable/dialog_background"
+        android:padding="6dp"
         android:text="Create game"
         android:textAlignment="center"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/fab_create_game" />
 
@@ -82,11 +83,11 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="45dp"
-        android:background="#383535"
-        android:padding="2dp"
+        android:background="@drawable/dialog_background"
+        android:padding="6dp"
         android:text="Invitation"
         android:textAlignment="center"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/fab_invite" />
 
