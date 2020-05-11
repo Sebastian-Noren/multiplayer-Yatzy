@@ -27,11 +27,10 @@ public class SettingsFragment extends Fragment implements Updatable {
     private Button logOutButton;
     private static TextView pingText;
 
+
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
         Log.d(tag, "In the Settings Fragment");
-        AppManager.getInstance().currentFragment = this;
-
         pingBtnRequest = view.findViewById(R.id.refreshButton);
         logOutButton = view.findViewById(R.id.logoutButton);
         pingText = view.findViewById(R.id.txtPing);
@@ -51,13 +50,6 @@ public class SettingsFragment extends Fragment implements Updatable {
         });
 
         return view;
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        requestPingFromServer();
     }
 
     private void requestPingFromServer(){
@@ -123,6 +115,7 @@ public class SettingsFragment extends Fragment implements Updatable {
     @Override
     public void onResume() {
         super.onResume();
+        requestPingFromServer();
         Log.d(tag, "Settings: In the onResume() event");
     }
 
