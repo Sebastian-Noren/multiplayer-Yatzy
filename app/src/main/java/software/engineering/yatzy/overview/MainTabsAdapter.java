@@ -25,17 +25,14 @@ public class MainTabsAdapter extends FragmentStatePagerAdapter {
     @Override
     public Fragment getItem(int position) {
 
-
         switch (position){
             case 0:
                 return new HomeFragment();
-
             case 1:
                 return new SettingsFragment();
 
             case 2:
                 return new HighscoreFragment();
-
             default:
             return null;
 
@@ -47,7 +44,6 @@ public class MainTabsAdapter extends FragmentStatePagerAdapter {
     @Override
     public CharSequence getPageTitle(int position)
     {
-
         switch (position)
         {
             case 0:

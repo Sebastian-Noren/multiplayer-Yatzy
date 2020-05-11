@@ -35,8 +35,8 @@ public class MainFragment extends Fragment {
 
 
         //main toolbar, included in main activity xml
-        mainToolbar = (Toolbar) view.findViewById(R.id.main_toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(mainToolbar);
+     //   mainToolbar = (Toolbar) view.findViewById(R.id.main_toolbar);
+     //   ((AppCompatActivity) getActivity()).setSupportActionBar(mainToolbar);
 
         //view pager widget
         viewPager = view.findViewById(R.id.main_view_pager);
