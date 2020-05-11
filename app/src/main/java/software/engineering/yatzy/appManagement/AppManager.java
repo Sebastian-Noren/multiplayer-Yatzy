@@ -423,7 +423,7 @@ public class AppManager {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
                 game.updateScoreBoard(indexOfPreviousPlayer, scoreboardIndex, scoreboardValue);
-                if (game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                if (game.getPlayer(currentPlayer).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
             }
@@ -459,14 +459,14 @@ public class AppManager {
             if (commands[++count].equals("null")) {
                 break;
             }
-            // count++; // ??
+          //  count++;
         }
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setState(gameState);
                 game.setTurnState(turnState);
                 game.updatePlayerList(playerList);
-                if (game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                if (game.getPlayer(currentPlayer).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
             }

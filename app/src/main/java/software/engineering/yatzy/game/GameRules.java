@@ -1,8 +1,11 @@
 package software.engineering.yatzy.game;
 
+import android.util.Log;
+
 import java.util.Arrays;
 
 public class GameRules {
+    private static final String TAG = "Info";
 
     //Stor stege
     public boolean largeStraight(int[] dice) {
@@ -35,24 +38,24 @@ public class GameRules {
     //KÅK
     public boolean fullHouse(int[] dice) {
         boolean isFullHouse = false;
-        if ((((dice[0] == dice[1]) && (dice[1] == dice[2])) && (dice[3] == dice[4])
+        if ((((dice[0] == dice[1]) && (dice[1] == dice[2])) && (dice[3] == dice[4] && (dice[0] != -1) && (dice[3] != -1))
                 && (dice[2] != dice[3])) ||
-                ((dice[0] == dice[1]) && ((dice[2] == dice[3]) && (dice[3] == dice[4]))
+                ((dice[0] == dice[1]) && ((dice[2] == dice[3]) && (dice[3] == dice[4]) && (dice[0] != -1) && (dice[3] != -1))
                         && (dice[1] != dice[2]))) {
             isFullHouse = true;
         }
         return isFullHouse;
     }
 
-    public boolean yatzy( int[] dice ) {
+    public boolean yatzy(int[] dice) {
         boolean yatzy = false;
-        for( int i = 1; i <= 6; i++ ) {
+        for (int i = 1; i <= 6; i++) {
             int count = 0;
-            for( int j = 0; j < 5; j++ ) {
-                if( dice[j] == i ) {
+            for (int j = 0; j < 5; j++) {
+                if (dice[j] == i) {
                     count++;
                 }
-                if ((count > 4)){
+                if ((count > 4)) {
                     yatzy = true;
                 }
             }
@@ -63,15 +66,27 @@ public class GameRules {
     // triss
     public boolean threeOfAKind(int[] dice) {
         boolean threeDice = false;
+        boolean check = false;
         for (int i = 1; i <= 6; i++) {
             int count = 0;
             for (int j = 0; j < 5; j++) {
                 if (dice[j] == i) {
                     count++;
                 }
-                if ((count > 2)){
-                    threeDice = true;
+                if (count == 3) {
+                    check = true;
                 }
+            }
+        }
+        int safeCheck = 0;
+        for (int k = 0; k < 5; k++) {
+            if (dice[k] == -1) {
+                safeCheck++;
+            }
+            if (safeCheck == 1) {
+                threeDice = false;
+            } else if (check && safeCheck >= 2) {
+                threeDice = true;
             }
         }
         return threeDice;
@@ -80,15 +95,27 @@ public class GameRules {
     // fyrpar
     public boolean fourOfAKind(int[] dice) {
         boolean fourDice = false;
+        boolean check = false;
         for (int i = 1; i <= 6; i++) {
             int count = 0;
             for (int j = 0; j < 5; j++) {
-                if (dice[j] == i) {
+                if (dice[j] == i && dice[j] != -1) {
                     count++;
                 }
-                if ((count > 3)){
-                    fourDice = true;
+                if ((count == 4)) {
+                    check = true;
                 }
+            }
+        }
+        int safeCheck = 0;
+        for (int k = 0; k < 5; k++) {
+            if (dice[k] == -1) {
+                safeCheck++;
+            }
+            if (safeCheck == 0) {
+                fourDice = false;
+            } else if (check && safeCheck >= 1) {
+                fourDice = true;
             }
         }
         return fourDice;
@@ -96,13 +123,27 @@ public class GameRules {
 
     public boolean onePair(int[] dice) {
         boolean isOnePar = false;
+        boolean check = false;
         for (int i = 1; i <= 6; i++) {
             int count = 0;
             for (int j = 0; j < 5; j++) {
                 if (dice[j] == i) {
                     count++;
                 }
-                isOnePar = (count > 1);
+                if (count == 2) {
+                    check = true;
+                }
+            }
+        }
+        int safeCheck = 0;
+        for (int k = 0; k < 5; k++) {
+            if (dice[k] == -1) {
+                safeCheck++;
+            }
+            if (safeCheck == 2) {
+                isOnePar = false;
+            } else if (check && safeCheck >= 2) {
+                isOnePar = true;
             }
         }
         return isOnePar;
@@ -110,11 +151,23 @@ public class GameRules {
 
     public boolean twoPair(int[] dice) {
         boolean isTwoPair = false;
-        if (((dice[0] == dice[1]) && (dice[2] == dice[3])) ||
-                ((dice[1] == dice[2]) && (dice[3] == dice[4]) && dice[2] !=dice[3]) ||
-                ((dice[0] == dice[1]) && (dice[3] == dice[4]))
-        ) {
-            isTwoPair = true;
+        boolean check = false;
+        if (((dice[0] == dice[1]) && (dice[2] == dice[3]) && (dice[0] != -1) && (dice[2] != -1))
+                || ((dice[1] == dice[2]) && (dice[3] == dice[4]) && dice[2] != dice[3] && (dice[1] != -1) && (dice[3] != -1))
+                || ((dice[0] == dice[1]) && (dice[3] == dice[4] && (dice[0] != -1) && (dice[3] != -1))))
+        {
+            check = true;
+        }
+        int safeCheck = 0;
+        for (int k = 0; k < 5; k++) {
+            if (dice[k] == -1) {
+                safeCheck++;
+            }
+            if (safeCheck == 0) {
+                isTwoPair = false;
+            } else if (check && safeCheck >= 1) {
+                isTwoPair = true;
+            }
         }
         return isTwoPair;
     }
