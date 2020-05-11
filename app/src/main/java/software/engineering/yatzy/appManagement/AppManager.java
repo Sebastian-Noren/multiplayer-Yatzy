@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
@@ -381,7 +382,7 @@ public class AppManager {
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
-                for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
+                for (int bit = 0; bit < game.getTurnState().rolledDiceBitMap.length; bit++) {
                     game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? true : false);
                 }
                 break;
@@ -576,10 +577,10 @@ public class AppManager {
                 }
             } else {
                 //bindToService(applicationContext, navController);
-                if(isBound) {
+                if (isBound) {
                     stopServiceThreads();
                 }
-                if(appInFocus) {
+                if (appInFocus) {
                     currentFragment.update(40, -1, "Unable to connect to cloud server");
                     //navController.navigate(R.id.navigation_Login);
                 }
@@ -650,9 +651,10 @@ public class AppManager {
                                 }
                             }
                         });
-                    } if (connected) {
+                    }
+                    if (connected) {
                         return;
-                    } else if(networkService.socketException) {
+                    } else if (networkService.socketException) {
                         networkState = NetworkState.LOGIN;
                         if (appInFocus) {
                             navController.navigate(R.id.navigation_Login);
@@ -677,7 +679,7 @@ public class AppManager {
                     objectOutput.writeObject(loggedInUser);
                 } catch (IOException e) {
                     Log.i(TAG, e.getMessage());
-                    //writeToast("Unable to write user tho cache");
+                    //writeToast("Unable to write user to cache");
                 }
             }
         }).start();
@@ -769,14 +771,52 @@ public class AppManager {
         }
     }
 
-    public void calculatePingTimer(){
+    public void calculatePingTimer() {
         finalTimeMillis = System.currentTimeMillis();
         latency = finalTimeMillis - startTimeMillis;
-        currentFragment.update(51,-1,null);
-        Log.d("Info","Latency = " + String.valueOf(latency));
+        currentFragment.update(51, -1, null);
+        Log.d("Info", "Latency = " + String.valueOf(latency));
     }
 
-    public void startPingTimer(){
+    public void startPingTimer() {
         startTimeMillis = System.currentTimeMillis();
+    }
+
+    public void logOutUser() {
+        //set loggedInUser to null values.
+        loggedInUser = new LoggedInUser("", null, 0, 0);
+        writeUserToCache();
+
+        try {
+            String logOutRequest = "3";
+            addClientRequest(logOutRequest);
+        } catch (Exception e) {
+            //Ignore
+        }
+
+        final Handler logOutHandler = new Handler(Looper.getMainLooper());
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    //Ignores since in seperate thread
+                }
+
+                logOutHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (appInFocus && isBound) {
+                            //Stop connection to cloud
+                            networkService.stopConnectionToCloudServer();
+                            //return to loginScreen
+                            navController.navigate(R.id.navigation_Login);
+                        }
+                    }
+                });
+            }
+        }).start();
     }
 }
