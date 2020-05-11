@@ -221,11 +221,12 @@ public class AppManager {
                     break;
                 case "36":
                     receiveChatMessages(commands);
-                case "41": // Connection to cloud lost/terminated
-                    lostCloudConnection(commands[1]);
                     break;
                 case "38":
                     receiveOneChatMessage(commands);
+                    break;
+                case "41": // Connection to cloud lost/terminated
+                    lostCloudConnection(commands[1]);
                     break;
                 default:
                     //writeToast("Unknown request from server: " + command);
