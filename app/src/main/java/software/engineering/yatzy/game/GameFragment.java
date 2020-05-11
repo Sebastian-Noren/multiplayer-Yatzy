@@ -60,7 +60,7 @@ public class GameFragment extends Fragment implements Updatable {
     private static final int SCOREBOARD_SIZE = 18;
     private static final float DICE_START_POSITIONX = 500f;
     private NavController navController;
-    private TextView turnStateText, gameInfo;
+    private TextView turnStateText, gameInfo, latency;
     private ArtEngine artEngine;
     private SoundEngine soundEngine;
     private Game currentGame;
@@ -180,6 +180,10 @@ public class GameFragment extends Fragment implements Updatable {
             case 40:
                 Log.e(TAG, exceptionMessage);
                 break;
+            case 51:
+                String str = MessageFormat.format("Latency: {0} ms", String.valueOf(AppManager.getInstance().latency));
+                latency.setText(str);
+                break;
             default:
                 Log.d(TAG, "Unknown request from server...");
                 break;
@@ -227,6 +231,8 @@ public class GameFragment extends Fragment implements Updatable {
         setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
         String str = currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName() + " is playing!";
         gameInfo.setText(str);
+        String str2 = "Latency: - ms";
+        latency.setText(str2);
         checkIfPlayerIsAllowedToPlay();
 
         // Roll button
@@ -251,6 +257,7 @@ public class GameFragment extends Fragment implements Updatable {
                             }
                         }
                         AppManager.getInstance().addClientRequest(rollturnRequest.toString().trim());
+                        requestPingFromServer();
                         break;
                     case PLACE_SCORE:
                         Log.i(TAG, "PLACE_SCORE STATE! ");
@@ -259,6 +266,7 @@ public class GameFragment extends Fragment implements Updatable {
                     case END_TURN:
                         Log.i(TAG, "END TURN STATE! ");
                         AppManager.getInstance().addClientRequest(requestToServer);
+                        requestPingFromServer();
                         deselectAllDice();
                         resetColors();
                         rollButton.setEnabled(false);
@@ -343,6 +351,12 @@ public class GameFragment extends Fragment implements Updatable {
         });
 
         return view;
+    }
+
+    private void requestPingFromServer(){
+        String pingRequest = "50";
+        AppManager.getInstance().startPingTimer();
+        AppManager.getInstance().addClientRequest(pingRequest);
     }
 
     private void checkIfPlayerIsAllowedToPlay() {
@@ -1277,6 +1291,7 @@ public class GameFragment extends Fragment implements Updatable {
         turnStateText = view.findViewById(R.id.tgame_currentTurn);
         chatLayoutFrame = view.findViewById(R.id.chat_window);
         gameInfo = view.findViewById(R.id.game_info);
+        latency = view.findViewById(R.id.latenzy_game);
         diceImages = new ImageView[5];
         diceAnim = new AnimationDrawable[5];
         //initialize dice views
