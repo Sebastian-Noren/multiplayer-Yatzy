@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.View;
 
 import androidx.navigation.NavController;
 
@@ -376,7 +377,7 @@ public class AppManager {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
                 for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
-                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? 1 : 0);
+                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? true : false);
                 }
                 break;
             }

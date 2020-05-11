@@ -92,9 +92,14 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                 // Sends which game index the player chose
                 if (AppManager.getInstance().gameList.get(position).getState() == GameState.PENDING) {
                     Utilities.toastMessage(getContext(), "Need to wait other players to accept!");
-                } else {
+                }
+                else if (AppManager.getInstance().gameList.get(position).getState() == GameState.ENDED){
+                    Bundle endData = new Bundle();
+                    endData.putInt("gameEnded", position);
+                    navController.navigate(R.id.navigation_ending, endData);
+                }
+                else {
                     Bundle bundle = new Bundle();
-                    Log.i(TAG, "Game index: " + position);
                     bundle.putInt("gameToPlay", position);
                     navController.navigate(R.id.navigation_game, bundle);
                 }
@@ -103,7 +108,6 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
 
         return view;
     }
-
 
     //Initialization of view
     private void init(View view) {
@@ -117,10 +121,6 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         invitationCounter = view.findViewById(R.id.invitation_counter);
         recyclerView = view.findViewById(R.id.overview_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        //TODO remove, will be based on a real arraylist later.
-       // gameSessionLists.add(new Room("Room 1", "4 players", "Ongoing", 1));
-
 
         inviteCounter = 0;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
@@ -266,18 +266,23 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
             case 16:
                 for (Game game : AppManager.getInstance().gameList) {
                     if (game.getGameID() == gameID) {
-                        Log.i(TAG, "Case: 16 happened!..");
                         gameRoom = game.getGameName();
                         gameState = game.getState().toString();
                         roomId = game.getGameID();
                         description = "A game from server"; // TODO lös något
                         gameSessionLists.add(new Room(gameRoom, description, gameState, roomId));
-                        //  gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
-                        // recyclerView.setAdapter(gameAdapter);
                         gameAdapter.notifyDataSetChanged();
                         break;
                     }
                 }
+                break;
+            case 21:
+
+                Utilities.toastMessage(getContext(),"Case 21 happend!");
+                break;
+            case 22:
+
+                Utilities.toastMessage(getContext(),"Case 22 happend!");
                 break;
             case 40:
                 Log.e(TAG, exceptionMessage);

@@ -22,7 +22,7 @@ public class SetupFragment extends Fragment implements Updatable{
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_setup, container, false);
         Log.d(tag, "In the SetupFragment");
-
+        getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.endColorBar));
         AppManager.getInstance().currentFragment = this;
 
         return view;
