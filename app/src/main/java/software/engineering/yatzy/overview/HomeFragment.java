@@ -121,7 +121,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         invitationCounter = view.findViewById(R.id.invitation_counter);
         recyclerView = view.findViewById(R.id.overview_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
+      
         inviteCounter = 0;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
             boolean pending = AppManager.getInstance().gameList.get(i).getPlayerByName(accountName).participation == PlayerParticipation.PENDING;

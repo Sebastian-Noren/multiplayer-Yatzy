@@ -12,6 +12,7 @@ public class Game {
     public ArrayList<Player> playerList;
     private String winnerName;
     private int winnerScore;
+    public ArrayList<ChatMessage> messages;
     private int playerListSize;
 
 
@@ -23,6 +24,7 @@ public class Game {
         this.playerList = playerList;
         this.winnerName = winnerName;
         this.winnerScore = winnerScore;
+        messages = new ArrayList<>();
     }
 
     public int getGameID() {
@@ -89,19 +91,32 @@ public class Game {
     }
 
     public Player getPlayerByName(String nameID) {
-        for(Player player : playerList) {
-            if(player.getName().equals(nameID)) {
+        for (Player player : playerList) {
+            if (player.getName().equals(nameID)) {
                 Log.e("Info", player.toString());
                 return player;
             }
         }
         Log.e("Info", "FAIL!");
-        return  null;
+        return null;
     }
 
-    public int getPlayerListSize(){
+    public int getPlayerListSize() {
         return playerList.size();
     }
+
+    public void setMessages(ArrayList<ChatMessage> messages) {
+        this.messages = messages;
+    }
+
+    public void appendOneMessage(ChatMessage msg) {
+        messages.add(msg);
+    }
+
+    public void appendMultipleMessages(ArrayList<ChatMessage> messagesToAdd) {
+        messages.addAll(messagesToAdd);
+    }
+
 
     @Override
     public String toString() {

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import software.engineering.yatzy.R;
+import software.engineering.yatzy.game.ChatMessage;
 import software.engineering.yatzy.game.Game;
 import software.engineering.yatzy.game.GameState;
 import software.engineering.yatzy.game.Player;
@@ -215,6 +216,12 @@ public class AppManager {
                 case "34":
                     updateInvitationReply(commands);
                     break;
+                case "36":
+                    receiveChatMessages(commands);
+                    break;
+                case "38":
+                    receiveOneChatMessage(commands);
+                    break;
                 case "40":
                     exceptionFromCloud(commands[1]);
                     break;
@@ -373,7 +380,7 @@ public class AppManager {
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
-                for(int bit = 0 ; bit < game.getTurnState().rolledDiceBitMap.length ; bit++) {
+                for (int bit = 0; bit < game.getTurnState().rolledDiceBitMap.length; bit++) {
                     game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? true : false);
                 }
                 break;
@@ -443,7 +450,7 @@ public class AppManager {
             if (commands[++count].equals("null")) {
                 break;
             }
-            count++;
+            // count++; // ??
         }
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
@@ -545,6 +552,64 @@ public class AppManager {
         }
     }
 
+    // #36
+    private void receiveChatMessages(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Receiving list of chat messages");
+        ArrayList<ChatMessage> messageList = new ArrayList<>();
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+        String receiveType = commands[++count];
+
+        while (true) {
+            int msgIndex = Integer.parseInt(commands[++count]);
+            String senderName = commands[++count];
+            String msgContent = commands[++count];
+            String timeStamp = commands[++count].replace(";", ":");
+            int replyToMsgIndex = Integer.parseInt(commands[++count]);
+
+            ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
+            messageList.add(msg);
+
+            if (commands[++count].equals("null")) {
+                break;
+            }
+        }
+        switch (receiveType) {
+            case "initialList":
+                getGameByGameID(gameID).setMessages(messageList);
+                break;
+            case "appendList":
+                getGameByGameID(gameID).appendMultipleMessages(messageList);
+                break;
+            default:
+                // Handle??
+                break;
+        }
+        if (appInFocus) {
+            currentFragment.update(36, gameID, null);
+        }
+    }
+
+    // #38
+    private void receiveOneChatMessage(String[] commands) throws Exception {
+        Log.i(TAG, "From server: Receiving one chat messages");
+        int count = 0;
+        int gameID = Integer.parseInt(commands[++count]);
+
+        int msgIndex = Integer.parseInt(commands[++count]);
+        String senderName = commands[++count];
+        String msgContent = commands[++count];
+        String timeStamp = commands[++count].replace(";", ":");
+        int replyToMsgIndex = Integer.parseInt(commands[++count]);
+
+        ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
+        getGameByGameID(gameID).appendOneMessage(msg);
+
+        if (appInFocus) {
+            currentFragment.update(38, gameID, null);
+        }
+    }
+
     // #40
     private void exceptionFromCloud(String exceptionMessage) {
         Log.i(TAG, "From server: Exception message");
@@ -568,12 +633,15 @@ public class AppManager {
                 }
             } else {
                 //bindToService(applicationContext, navController);
-                if(isBound) {
+                if (isBound) {
                     stopServiceThreads();
                 }
-                if(appInFocus) {
+                if (appInFocus && networkState == NetworkState.UNDEFINED) {
+                    //currentFragment.update(40, -1, "Unable to connect to cloud server");
+                    navController.navigate(R.id.navigation_Login);
+                }
+                if (appInFocus && networkState == NetworkState.LOGIN) {
                     currentFragment.update(40, -1, "Unable to connect to cloud server");
-                    //navController.navigate(R.id.navigation_Login);
                 }
             }
         }
@@ -635,21 +703,14 @@ public class AppManager {
                                 }
                                 if ((attempt == 9 && !connected)) {
                                     networkState = NetworkState.LOGIN;
-                                    if (appInFocus) {
-                                        //navController.navigate(R.id.navigation_Login);
-                                        //currentFragment.update(40, -1, "Unable to connect to cloud server");
-                                    }
                                 }
                             }
                         });
-                    } if (connected) {
+                    }
+                    if (connected) {
                         return;
-                    } else if(networkService.socketException) {
+                    } else if (networkService.socketException) {
                         networkState = NetworkState.LOGIN;
-                        if (appInFocus) {
-                            navController.navigate(R.id.navigation_Login);
-                            //currentFragment.update(40, -1, "Unable to connect to cloud server");
-                        }
                         return;
                     }
                 }
