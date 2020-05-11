@@ -136,6 +136,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
             }
         }
 
+
+
         gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
         recyclerView.setAdapter(gameAdapter);
 
@@ -235,8 +237,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         inviteCounter -= minusInviteCounter;
         changeInviteFrame();
 
-     //   gameSessionLists.addAll(listOfAccepted);
-     //   gameAdapter.notifyDataSetChanged();
+        gameSessionLists.addAll(listOfAccepted);
+        gameAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -277,8 +279,15 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                 }
                 break;
             case 21:
-
                 Utilities.toastMessage(getContext(),"Case 21 happend!");
+                for (int i = 0; i < gameSessionLists.size() ; i++) {
+                    if (gameSessionLists.get(i).getRoomID() == gameID){
+                        gameSessionLists.get(i).setDescription("Game in session");
+                        gameSessionLists.get(i).setStatus(GameState.ONGOING.toString());
+                        gameAdapter.notifyDataSetChanged();
+                        break;
+                    }
+                }
                 break;
             case 22:
 
