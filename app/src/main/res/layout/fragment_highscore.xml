@@ -6,13 +6,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/fragment_background">
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="215dp"
-        android:layout_marginEnd="15dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="20dp"
         android:orientation="vertical">
 
         <androidx.cardview.widget.CardView
@@ -24,18 +23,20 @@
             app:cardElevation="4dp">
 
             <TextView
-                android:id="@+id/txtScorePlayer"
+                android:id="@+id/txtPing"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center|top"
-                android:layout_margin="15dp"
-                android:text="Your Highscore:" />
+                android:layout_marginTop="20dp"
+                android:text="Your Highscore:"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-            <view
+            <View
                 android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:layout_marginStart="15dp"
-                android:layout_marginTop="34dp"
+                android:layout_marginTop="45dp"
                 android:layout_marginEnd="15dp"
                 android:background="@color/colorPurple" />
 
@@ -44,33 +45,50 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="45dp"
-                android:text="Global Top 3:" />
+                android:layout_marginTop="60dp"
+                android:text="Global Top 3:"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/globalNbr1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="75dp"
-                android:text="1:" />
+                android:layout_marginTop="100dp"
+                android:text="1:"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/globalNbr2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="105dp"
-                android:text="2:" />
+                android:layout_marginTop="140dp"
+                android:text="2:"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/globalNbr3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="135dp"
-                android:layout_marginBottom="15dp"
-                android:text="3:" />
+                android:layout_marginTop="180dp"
+                android:text="3:"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/refreshButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="220dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/lo_singup_botton_ui"
+                android:src="@drawable/ic_refresh_button24dp" />
         </androidx.cardview.widget.CardView>
     </LinearLayout>
 

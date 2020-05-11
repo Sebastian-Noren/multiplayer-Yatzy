@@ -772,9 +772,10 @@ public class AppManager {
         finalTimeMillis = System.currentTimeMillis();
         latency = finalTimeMillis - startTimeMillis;
         currentFragment.update(51,-1,null);
+        Log.d("Info","Latency = " + String.valueOf(latency));
     }
 
-    public void startPingTimer(String request){
+    public void startPingTimer(){
         startTimeMillis = System.currentTimeMillis();
     }
 }
