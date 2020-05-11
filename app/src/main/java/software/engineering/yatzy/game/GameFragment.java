@@ -79,7 +79,7 @@ public class GameFragment extends Fragment implements Updatable {
     private ArrayList<TableLayout> tables;
     private int gameIndex;
 
-    private Dice[] dices = {new Dice(DiceName.DICE1, 0, false), new Dice(DiceName.DICE2,0, false),
+    private Dice[] dices = {new Dice(DiceName.DICE1, 0, false), new Dice(DiceName.DICE2, 0, false),
             new Dice(DiceName.DICE3, 0, false), new Dice(DiceName.DICE4, 0, false),
             new Dice(DiceName.DICE5, 0, false)};
     // Temp variable
@@ -90,8 +90,8 @@ public class GameFragment extends Fragment implements Updatable {
     public void update(int protocolIndex, int specifier, String exceptionMessage) {
         switch (protocolIndex) {
             case 18:
-                if (specifier == currentGame.getGameID()){
-                    Utilities.toastMessage(getContext(),"Protocol 18:");
+                if (specifier == currentGame.getGameID()) {
+                    Utilities.toastMessage(getContext(), "Protocol 18:");
                     currentGame.setTurnState(AppManager.getInstance().getGameByGameID(specifier).getTurnState());
                     lastplayer = currentGame.getTurnState().getCurrentPlayer();
                     Log.e(TAG, "onCreateView: " + currentGame.toString());
@@ -102,15 +102,15 @@ public class GameFragment extends Fragment implements Updatable {
                 }
                 break;
             case 20:
-                if (specifier == currentGame.getGameID()){
-                    Log.i(TAG,String.valueOf(lastplayer));
-                    Utilities.toastMessage(getContext(),"Protocol 20:");
+                if (specifier == currentGame.getGameID()) {
+                    Log.i(TAG, String.valueOf(lastplayer));
+                    Utilities.toastMessage(getContext(), "Protocol 20:");
                     for (int i = 1; i < tables.get(lastplayer).getChildCount(); i++) {
                         TableRow row = (TableRow) tables.get(lastplayer).getChildAt(i);
                         TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
-                        if (currentGame.getPlayer(lastplayer).getScoreBoardElement(i - 1) == -1){
+                        if (currentGame.getPlayer(lastplayer).getScoreBoardElement(i - 1) == -1) {
                             cellText.setText("");
-                        }else {
+                        } else {
                             cellText.setText(String.valueOf(currentGame.getPlayer(lastplayer).getScoreBoardElement(i - 1)));
                         }
                     }
@@ -125,17 +125,40 @@ public class GameFragment extends Fragment implements Updatable {
                 if (specifier == currentGame.getGameID()) {
                     Utilities.toastMessage(getContext(), "Protocol 22:");
                     Bundle bundle = new Bundle();
-                    bundle.putInt("gameEnded",gameIndex);
+                    bundle.putInt("gameEnded", gameIndex);
                     navController.navigate(R.id.navigation_ending, bundle);
                 }
 
                 break;
-             case 36:
+            case 36:
                 //message list
                 //chatList.get()
                 //chatAdapter.notifyDataSetChanged();
-            break;
-            
+                if (specifier == currentGame.getGameID()) {
+
+                    // chatList = AppManager.getInstance().getGameByGameID(currentGame.getGameID()).messages;
+
+                    for (ChatMessage message : AppManager.getInstance().getGameByGameID(currentGame.getGameID()).messages) {
+                        chatList.add(message);
+                        chatAdapter.notifyDataSetChanged();
+
+                    }
+                    //chatAdapter.notifyDataSetChanged();
+
+                }
+                break;
+            case 38:
+                if (specifier == currentGame.getGameID()) {
+                    int latest = AppManager.getInstance().getGameByGameID(currentGame.getGameID()).messages.size() - 1;
+
+                    ChatMessage message = AppManager.getInstance().getGameByGameID(currentGame.getGameID()).messages.get(latest);
+
+                    chatList.add(message);
+                    chatAdapter.notifyDataSetChanged();
+
+                }
+
+                break;
             case 40:
                 Log.e(TAG, exceptionMessage);
                 break;
@@ -145,11 +168,11 @@ public class GameFragment extends Fragment implements Updatable {
         }
     }
 
-    private void checkSelectedDice(){
+    private void checkSelectedDice() {
         for (int i = 0; i < diceImages.length; i++) {
             if (currentGame.getTurnState().getDiceBitMapElement(i)) {
                 dices[i].setSelected(true);
-            }else {
+            } else {
                 dices[i].setSelected(false);
             }
         }
@@ -176,6 +199,8 @@ public class GameFragment extends Fragment implements Updatable {
         gameIndex = getArguments().getInt("gameToPlay");
         currentGame = AppManager.getInstance().gameList.get(gameIndex);
 
+        //request messages
+        AppManager.getInstance().addClientRequest("35:" + currentGame.getGameID() + ":latest:-1");
 
         Log.e(TAG, "onCreateView: " + currentGame.toString());
 
@@ -200,7 +225,7 @@ public class GameFragment extends Fragment implements Updatable {
                         for (int i = 0; i < diceImages.length; i++) {
                             if (dices[i].isSelected()) {
                                 rollturnRequest.append(MessageFormat.format(":{0}", "1"));
-                            }else {
+                            } else {
                                 rollturnRequest.append(MessageFormat.format(":{0}", "0"));
                             }
                         }
@@ -297,8 +322,8 @@ public class GameFragment extends Fragment implements Updatable {
         return view;
     }
 
-    private void checkIfPlayerIsAllowedToPlay(){
-        if (AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())){
+    private void checkIfPlayerIsAllowedToPlay() {
+        if (AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())) {
             rollButton.setEnabled(true);
             // set current playing state
             if (currentGame.getTurnState().getRollTurn() == 0) {
@@ -308,7 +333,7 @@ public class GameFragment extends Fragment implements Updatable {
                 state = State.PLAYING;
                 Log.i(TAG, "Init State: " + state);
             }
-        }else {
+        } else {
             rollButton.setEnabled(false);
         }
         turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
@@ -329,7 +354,7 @@ public class GameFragment extends Fragment implements Updatable {
 
     private void initDice() {
         initDiceAnimation();
-        if (state == State.NEWPLAYER ||currentGame.getTurnState().getRollTurn() == 0) {
+        if (state == State.NEWPLAYER || currentGame.getTurnState().getRollTurn() == 0) {
             for (ImageView diceImage : diceImages) {
                 diceImage.setTranslationX(DICE_START_POSITIONX);
                 startFirstDiceAnimation();
@@ -462,7 +487,7 @@ public class GameFragment extends Fragment implements Updatable {
         }
     }
 
-    private void resetColors(){
+    private void resetColors() {
         int x = currentGame.getTurnState().getCurrentPlayer();
         for (int i = 1; i < tables.get(x).getChildCount(); i++) {
             TableRow row = (TableRow) tables.get(x).getChildAt(i);
@@ -635,16 +660,16 @@ public class GameFragment extends Fragment implements Updatable {
 
     }
 
-    private int calculateSubSum(){
+    private int calculateSubSum() {
         int sum = 0;
         for (int i = 1; i < 7; i++) {
             TableRow row = (TableRow) tables.get(lastplayer).getChildAt(i);
             TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
             try {
                 sum += Integer.parseInt(cellText.getText().toString());
-            }catch (NumberFormatException e){
-                sum +=0;
-                Log.e(TAG,e.getMessage());
+            } catch (NumberFormatException e) {
+                sum += 0;
+                Log.e(TAG, e.getMessage());
             }
         }
         return sum;
@@ -754,7 +779,7 @@ public class GameFragment extends Fragment implements Updatable {
             headerPlayerName.setLayoutParams(rowParams); // TableRow is the parent view
             headerPlayerName.setText(currentGame.getPlayer(i).getName());
             headerPlayerName.setGravity(Gravity.CENTER);
-            headerPlayerName.setPadding(0,padding,0,padding);
+            headerPlayerName.setPadding(0, padding, 0, padding);
             headerPlayerName.setTypeface(null, Typeface.BOLD);
 
             // add textView item in the header row
@@ -772,12 +797,12 @@ public class GameFragment extends Fragment implements Updatable {
                 TextView scoreTextField = new TextView(context);
                 scoreTextField.setLayoutParams(rowParams); // TableRow is the parent view
                 scoreTextField.setGravity(Gravity.CENTER);
-                scoreTextField.setPadding(0,padding,0,padding);
+                scoreTextField.setPadding(0, padding, 0, padding);
 
 
-                if (currentGame.getPlayer(i).getScoreBoardElement(f) == -1){
+                if (currentGame.getPlayer(i).getScoreBoardElement(f) == -1) {
                     scoreTextField.setText("");
-                }else {
+                } else {
                     scoreTextField.setText(String.valueOf(currentGame.getPlayer(i).getScoreBoardElement(f)));
                 }
                 tableRow.addView(scoreTextField);
@@ -790,7 +815,7 @@ public class GameFragment extends Fragment implements Updatable {
                             tableRowIndex = tableLayout.indexOfChild(row);
 
                             String value = String.valueOf(calculateScoreValue(tableRowIndex));
-                            String index = String.valueOf(tableRowIndex-1);
+                            String index = String.valueOf(tableRowIndex - 1);
                             requestToServer = MessageFormat.format("19:{0}:{1}:{2}", currentGame.getGameID(), index, value);
 
                             TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
@@ -844,12 +869,13 @@ public class GameFragment extends Fragment implements Updatable {
     private Button send;
     private EditText editTextChat;
     private ChatAdapter chatAdapter;
-    private ArrayList<String> chatList = new ArrayList<>();
+    private ArrayList<ChatMessage> chatList = new ArrayList<>();
     public static boolean doubleClicked = false;
     public static int positionClicked;
     private boolean ignore = false;
 
-    public void initChat(View view){
+    public void initChat(View view) {
+
         recyclerViewChat = view.findViewById(R.id.rv_chat);
         recyclerViewChat.setLayoutManager(linearLayoutManager);
 
@@ -867,12 +893,16 @@ public class GameFragment extends Fragment implements Updatable {
                 if (message != null && !TextUtils.isEmpty(message)) {
 
                     if (doubleClicked) {
-                        String[] response = chatList.get(positionClicked).split(":");
+                        // String[] response = chatList.get(positionClicked).split(":");
+
+                        int replyToIndex = chatList.get(positionClicked).msgIndex;
+
+                        AppManager.getInstance().addClientRequest("37:" + currentGame.getGameID() + ":" + message + ":" + replyToIndex);
                         //String[] currentSender = message.split(":");
 
                         //TODO REMOVE ALIREPLY! and WHOISSENDING
                         //AliReply:whoIsReplying:Towhom:theirMessageWeReplyTo:OurReplyMessage
-                        chatList.add("AliReply:" + AppManager.getInstance().loggedInUser.getNameID() + ":" + response[0] + ":" + response[1] + ":" + " " + message + ":" + currentTime);
+                        // chatList.add("AliReply:" + AppManager.getInstance().loggedInUser.getNameID() + ":" + response[0] + ":" + response[1] + ":" + " " + message + ":" + currentTime);
 
                         editTextChat.setText("");
                         editTextChat.setHint("");
@@ -885,12 +915,8 @@ public class GameFragment extends Fragment implements Updatable {
 
                     } else {
 
-                        //TODO koppla till servern
-                        if(AppManager.getInstance().loggedInUser.getNameID().equals(AppManager.getInstance().loggedInUser.getNameID())){
-                            chatList.add(AppManager.getInstance().loggedInUser.getNameID() + message + ":" + currentTime);
-                            editTextChat.setText("");
-
-                        }
+                        AppManager.getInstance().addClientRequest("37:" + currentGame.getGameID() + ":" + message + ":-1");
+                        editTextChat.setText("");
 
                     }
 
@@ -902,6 +928,7 @@ public class GameFragment extends Fragment implements Updatable {
             }
 
         });
+
 
         //add array to chatAdapter
         chatAdapter = new ChatAdapter(chatList);
@@ -918,7 +945,7 @@ public class GameFragment extends Fragment implements Updatable {
 
                 //1. first time when clicked, only the time of currentTime (that is much more than getDoubleTapTimeout())
                 //2. next time clicked, currTime is now a new instantiation of time (This happens when we have double clicked)
-                if (nowClickedTime - lastClickedTimeStamp < ViewConfiguration.getDoubleTapTimeout() && !chatList.get(position).startsWith(AppManager.getInstance().loggedInUser.getNameID())) {
+                if (nowClickedTime - lastClickedTimeStamp < ViewConfiguration.getDoubleTapTimeout() && !chatList.get(position).senderName.equals(AppManager.getInstance().loggedInUser.getNameID())) {
 
                     if (ignore) {
 
@@ -932,24 +959,24 @@ public class GameFragment extends Fragment implements Updatable {
 
                     // When we have removed our message, it's no longer activated, therefor we cant respond or double
                     //click the removed text (does not work without this line)
-                    if(linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_right).isActivated()){
+                    if (linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_right).isActivated()) {
 
-                    //currently clicked item will start animation for itself
-                    Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
-                    linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_left).startAnimation(animation);
+                        //currently clicked item will start animation for itself
+                        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
+                        linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_left).startAnimation(animation);
 
-                    //When double clicked this is set to true
-                    //so that next time we double click it will go to the if statement above and reset
-                    //settings meaning we don't want to make a reply.
-                    ignore = true;
+                        //When double clicked this is set to true
+                        //so that next time we double click it will go to the if statement above and reset
+                        //settings meaning we don't want to make a reply.
+                        ignore = true;
 
-                    Toast.makeText(getActivity(), "Double clicked", Toast.LENGTH_SHORT).show();
-                    doubleClicked = true;
-                    positionClicked = position;
+                        Toast.makeText(getActivity(), "Double clicked", Toast.LENGTH_SHORT).show();
+                        doubleClicked = true;
+                        positionClicked = position;
 
-                    //name of person replying to
-                    String[] response = chatList.get(positionClicked).split(":");
-                    editTextChat.setHint("Reply to " + response[0] + ":");
+                        //name of person replying to
+                        String responseName = chatList.get(positionClicked).senderName;
+                        editTextChat.setHint("Reply to " + responseName + ":");
                     }
 
                 }
@@ -965,13 +992,14 @@ public class GameFragment extends Fragment implements Updatable {
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false; //used if we want to re-arrange chat
             }
+
             //TODO change to logged in user
             //Disable certain directions
             @Override
             public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
                 //instead we will get global variable to get current user - this will enable us to only swipe our
                 //recyclerView object/textView/chat
-                if (!chatList.get(viewHolder.getAdapterPosition()).startsWith(AppManager.getInstance().loggedInUser.getNameID())) {
+                if (!chatList.get(viewHolder.getAdapterPosition()).senderName.equals(AppManager.getInstance().loggedInUser.getNameID())) {
                     return 0;
                 }
                 return super.getSwipeDirs(recyclerView, viewHolder);
@@ -984,22 +1012,25 @@ public class GameFragment extends Fragment implements Updatable {
 
                 switch (direction) {
                     case ItemTouchHelper.LEFT:
-                        //TODO
-                        //Instead we will send this to server, and it will remove this position in a general method that
-                        //all other users will also use so this specific position is deleted
-                        chatList.remove(position);
-                        chatAdapter.notifyItemRemoved(position);
 
-                        Toast.makeText(getActivity(), "Message erased! " + chatList.size(), Toast.LENGTH_SHORT).show();
-                        //TODO
-                        //We remove the message and its place we we add
-                        //our own message this is also something that needs
-                        //to be sent to the server and returned back to a method
-                        //that will have the code underneath
+                        AppManager.getInstance().addClientRequest("39a:" + currentGame.getGameID() + ":" + chatList.get(position));
 
-                        //adds the message to that same position we removed
-                        chatList.add(position, "delete:");
-                        chatAdapter.notifyDataSetChanged();
+//                        //Instead we will send this to server, and it will remove this position in a general method that
+//                        //all other users will also use so this specific position is deleted
+//                        chatList.remove(position);
+//                        chatAdapter.notifyItemRemoved(position);
+//
+//                        Toast.makeText(getActivity(), "Message erased! " + chatList.size(), Toast.LENGTH_SHORT).show();
+//
+//                        //We remove the message and its place we we add
+//                        //our own message this is also something that needs
+//                        //to be sent to the server and returned back to a method
+//                        //that will have the code underneath
+//
+//                        //adds the message to that same position we removed
+//                        chatList.add(position, "delete:");
+//                        chatAdapter.notifyDataSetChanged();
+
                         break;
                 }
             }

@@ -91,17 +91,17 @@ public class Game {
     }
 
     public Player getPlayerByName(String nameID) {
-        for(Player player : playerList) {
-            if(player.getName().equals(nameID)) {
+        for (Player player : playerList) {
+            if (player.getName().equals(nameID)) {
                 Log.e("Info", player.toString());
                 return player;
             }
         }
         Log.e("Info", "FAIL!");
-        return  null;
+        return null;
     }
 
-    public int getPlayerListSize(){
+    public int getPlayerListSize() {
         return playerList.size();
     }
 
@@ -116,6 +116,7 @@ public class Game {
     public void appendMultipleMessages(ArrayList<ChatMessage> messagesToAdd) {
         messages.addAll(messagesToAdd);
     }
+
 
     @Override
     public String toString() {
