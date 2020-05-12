@@ -351,7 +351,7 @@ public class GameFragment extends Fragment implements Updatable {
     }
 
     private void requestPingFromServer(){
-        String pingRequest = "50";
+        String pingRequest = "50:a";
         AppManager.getInstance().gamePingTimer();
         AppManager.getInstance().addClientRequest(pingRequest);
     }
