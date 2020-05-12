@@ -93,7 +93,6 @@ public class Game {
     public Player getPlayerByName(String nameID) {
         for (Player player : playerList) {
             if (player.getName().equals(nameID)) {
-                Log.e("Info", player.toString());
                 return player;
             }
         }

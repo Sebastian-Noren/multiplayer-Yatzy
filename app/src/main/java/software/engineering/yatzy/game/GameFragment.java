@@ -88,10 +88,9 @@ public class GameFragment extends Fragment implements Updatable {
         switch (protocolIndex) {
             case 18:
                 if (specifier == currentGame.getGameID()) {
-                    Utilities.toastMessage(getContext(), "Protocol 18:");
+                    Log.i(TAG, "onCreateView: " + currentGame.toString());
                     currentGame.setTurnState(AppManager.getInstance().getGameByGameID(specifier).getTurnState());
                     lastplayer = currentGame.getTurnState().getCurrentPlayer();
-                    Log.e(TAG, "onCreateView: " + currentGame.toString());
                     turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
                     checkSelectedDice();
                     resetSelectedDice();
@@ -100,8 +99,7 @@ public class GameFragment extends Fragment implements Updatable {
                 break;
             case 20:
                 if (specifier == currentGame.getGameID()) {
-                    Log.i(TAG, String.valueOf(lastplayer));
-                    Utilities.toastMessage(getContext(), "Protocol 20:");
+                    Log.i(TAG, "onCreateView: " + currentGame.toString());
                     for (int i = 1; i < tables.get(lastplayer).getChildCount(); i++) {
                         TableRow row = (TableRow) tables.get(lastplayer).getChildAt(i);
                         TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
@@ -118,18 +116,15 @@ public class GameFragment extends Fragment implements Updatable {
                     setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
                     String str = currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName() + " is playing!";
                     gameInfo.setText(str);
-                    Log.e(TAG, "onCreateView: " + currentGame.toString());
                     checkIfPlayerIsAllowedToPlay();
                 }
                 break;
             case 22:
                 if (specifier == currentGame.getGameID()) {
-                    Utilities.toastMessage(getContext(), "Protocol 22:");
                     Bundle bundle = new Bundle();
                     bundle.putInt("gameEnded", gameIndex);
                     navController.navigate(R.id.navigation_ending, bundle);
                 }
-
                 break;
             case 36:
                 //message list
@@ -216,7 +211,7 @@ public class GameFragment extends Fragment implements Updatable {
 
         //Start game sound
         soundEngine.createApplicationSound();
-        //   soundEngine.createGameBgSound();
+        soundEngine.createGameBgSound();
 
         //Get the game user clicked on and get it from games list.
         gameIndex = getArguments().getInt("gameToPlay");
@@ -239,7 +234,6 @@ public class GameFragment extends Fragment implements Updatable {
         rollButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG, "Rolling dice! ");
                 soundEngine.buttonClick();
                 switch (state) {
                     case NEWPLAYER:
@@ -368,6 +362,8 @@ public class GameFragment extends Fragment implements Updatable {
                 Log.i(TAG, "Init State: " + state);
             } else if (currentGame.getTurnState().getRollTurn() == 3) {
                 state = State.PLACE_SCORE;
+                rollButton.setEnabled(false);
+                rollButton.setText("Waiting");
                 gameInfo.setText("Place your Score!");
                 Log.i(TAG, "Init State: " + state);
                 checkRules();
@@ -376,6 +372,7 @@ public class GameFragment extends Fragment implements Updatable {
                 Log.i(TAG, "Init State: " + state);
             }
         } else {
+            rollButton.setText("Waiting");
             rollButton.setEnabled(false);
         }
         turnStateText.setText(MessageFormat.format("{0}/3", (currentGame.getTurnState().getRollTurn())));
@@ -398,24 +395,24 @@ public class GameFragment extends Fragment implements Updatable {
         initDiceAnimation();
 
         if (state == State.NEWPLAYER) {
-            for (ImageView diceImage : diceImages) {
-                diceImage.setTranslationX(DICE_START_POSITIONX);
-                startFirstDiceAnimation();
-            }
             Log.i(TAG, "InitDice(): 1");
-        } else if (currentGame.getTurnState().getRollTurn() == 1){
             for (ImageView diceImage : diceImages) {
                 diceImage.setTranslationX(DICE_START_POSITIONX);
                 startFirstDiceAnimation();
             }
+        } else if (currentGame.getTurnState().getRollTurn() == 1){
             Log.i(TAG, "InitDice(): Spectator first round");
+            for (ImageView diceImage : diceImages) {
+                diceImage.setTranslationX(DICE_START_POSITIONX);
+                startFirstDiceAnimation();
+            }
         }
         else {
+            Log.i(TAG, "InitDice(): 3");
             Random rand = new Random();
             for (ImageView diceImage : diceImages) {
                 diceImage.setRotation(rand.nextInt(360));
             }
-            Log.i(TAG, "InitDice(): 3");
             initDiceGraphicCurrentPlay();
         }
     }
@@ -480,9 +477,11 @@ public class GameFragment extends Fragment implements Updatable {
                 }
                 updateDiceGraphic();
                 deselectAllDice();
-                rollButton.setEnabled(true);
+                if (AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())) {
+                    rollButton.setEnabled(true);
+                }
                 //When 3 turns ends and move to another player
-                if (currentGame.getTurnState().getRollTurn() > 2 && !scoreHasBeenPlaced) {
+                if (currentGame.getTurnState().getRollTurn() > 2 && !scoreHasBeenPlaced && AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())) {
                     gameInfo.setText("Place your Score!");
                     rollButton.setEnabled(false);
                     state = State.PLACE_SCORE;
@@ -505,6 +504,11 @@ public class GameFragment extends Fragment implements Updatable {
                 dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
                 diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
             }
+            else {
+                Log.i(TAG, "Update graphic: Spectator");
+                dices[i].setDiceValue(currentGame.getTurnState().getDiceElement(i));
+                diceImages[i].setImageBitmap(artEngine.getDiceSide(dices[i].getDiceValue() - 1));
+            }
         }
     }
 
@@ -524,34 +528,36 @@ public class GameFragment extends Fragment implements Updatable {
 
     // When the player selects a dice
     private void selectedDice(short val) {
-        if (!dices[val].isSelected()) {
-            Log.i(TAG, String.format("%s selected, with value: %d", dices[val].getDiceName(), dices[val].getDiceValue()));
-            diceImages[val].setBackground(artEngine.getHighlight());
-            dices[val].setSelected(true);
-            if (state == State.PLACE_SCORE) {
-                for (int i = 0; i < diceImages.length; i++) {
-                    if (dices[i].isSelected()) {
-                        anyDiceSelected = true;
+        if (AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())) {
+            if (!dices[val].isSelected()) {
+                Log.i(TAG, String.format("%s selected, with value: %d", dices[val].getDiceName(), dices[val].getDiceValue()));
+                diceImages[val].setBackground(artEngine.getHighlight());
+                dices[val].setSelected(true);
+                if (state == State.PLACE_SCORE) {
+                    for (int i = 0; i < diceImages.length; i++) {
+                        if (dices[i].isSelected()) {
+                            anyDiceSelected = true;
+                        }
                     }
+                    checkRules();
                 }
-                checkRules();
-            }
-        } else {
-            diceImages[val].setBackground(null);
-            dices[val].setSelected(false);
-            Log.i(TAG, String.format("%s deselected!", dices[val].getDiceName()));
-            if (state == State.PLACE_SCORE) {
-                int count = 0;
-                for (int i = 0; i < diceImages.length; i++) {
-                    if (dices[i].isSelected()) {
-                        count++;
-                        Log.i(TAG, "Counter : " + count);
+            } else {
+                diceImages[val].setBackground(null);
+                dices[val].setSelected(false);
+                Log.i(TAG, String.format("%s deselected!", dices[val].getDiceName()));
+                if (state == State.PLACE_SCORE) {
+                    int count = 0;
+                    for (int i = 0; i < diceImages.length; i++) {
+                        if (dices[i].isSelected()) {
+                            count++;
+                            Log.i(TAG, "Counter : " + count);
+                        }
                     }
+                    if (count == 0) {
+                        anyDiceSelected = false;
+                    }
+                    checkRules();
                 }
-                if (count == 0) {
-                    anyDiceSelected = false;
-                }
-                checkRules();
             }
         }
     }
@@ -576,7 +582,6 @@ public class GameFragment extends Fragment implements Updatable {
                 diceRule[i] = -1;
             }
         }
-        Log.d(TAG, "checkRules True/False: " + anyDiceSelected);
         Arrays.sort(diceRule);
 
         int ok = getResources().getColor(R.color.colorFieldOK);
@@ -809,21 +814,6 @@ public class GameFragment extends Fragment implements Updatable {
         }
     }
 
-    private int calculateSubSum() {
-        int sum = 0;
-        for (int i = 1; i < 7; i++) {
-            TableRow row = (TableRow) tables.get(lastplayer).getChildAt(i);
-            TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
-            try {
-                sum += Integer.parseInt(cellText.getText().toString());
-            } catch (NumberFormatException e) {
-                sum += 0;
-                Log.e(TAG, e.getMessage());
-            }
-        }
-        return sum;
-    }
-  
     // Calculated place score
     private int calculateScoreValue(int index) {
         switch (index) {
@@ -1003,7 +993,7 @@ public class GameFragment extends Fragment implements Updatable {
                 //allows you to select a specific row
                 tableRow.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View view) {
-                        if (state == State.PLACE_SCORE) {
+                        if (state == State.PLACE_SCORE && AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())) {
                             TableRow row = (TableRow) view;
                             int tableRowIndex = tableLayout.indexOfChild(row);
 
@@ -1034,6 +1024,7 @@ public class GameFragment extends Fragment implements Updatable {
 
                             scoreHasBeenPlaced = true;
                             rollButton.setEnabled(true);
+                            gameInfo.setText("Press to end Turn!");
                             rollButton.setText("End Turn");
                             state = State.END_TURN;
                         }
