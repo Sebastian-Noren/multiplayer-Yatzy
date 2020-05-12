@@ -117,6 +117,15 @@ public class Game {
         messages.addAll(messagesToAdd);
     }
 
+    public ChatMessage getChatMessageByMsgIndex(int index) {
+        for(ChatMessage msg : messages) {
+            if(msg.msgIndex == index) {
+                return msg;
+            }
+        }
+        return null;
+    }
+
 
     @Override
     public String toString() {

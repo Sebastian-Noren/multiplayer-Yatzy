@@ -222,6 +222,8 @@ public class AppManager {
                 case "38":
                     receiveOneChatMessage(commands);
                     break;
+                case "392":
+                    deleteOneChatMessage(commands);
                 case "40":
                     exceptionFromCloud(commands[1]);
                     break;
@@ -381,7 +383,7 @@ public class AppManager {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
                 for (int bit = 0; bit < game.getTurnState().rolledDiceBitMap.length; bit++) {
-                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1") ? true : false);
+                    game.getTurnState().rolledDiceBitMap[bit] = (commands[++count].equals("1"));
                 }
                 break;
             }
@@ -450,7 +452,6 @@ public class AppManager {
             if (commands[++count].equals("null")) {
                 break;
             }
-            // count++; // ??
         }
         for (Game game : gameList) {
             if (game.getGameID() == gameID) {
@@ -566,8 +567,9 @@ public class AppManager {
             String msgContent = commands[++count];
             String timeStamp = commands[++count].replace(";", ":");
             int replyToMsgIndex = Integer.parseInt(commands[++count]);
+            boolean isDeleted = commands[++count].equals("1");
 
-            ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
+            ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex, isDeleted);
             messageList.add(msg);
 
             if (commands[++count].equals("null")) {
@@ -601,12 +603,28 @@ public class AppManager {
         String msgContent = commands[++count];
         String timeStamp = commands[++count].replace(";", ":");
         int replyToMsgIndex = Integer.parseInt(commands[++count]);
+        boolean isDeleted = commands[++count].equals("1");
 
-        ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex);
+        ChatMessage msg = new ChatMessage(msgIndex, senderName, msgContent, timeStamp, replyToMsgIndex, isDeleted);
         getGameByGameID(gameID).appendOneMessage(msg);
 
         if (appInFocus) {
             currentFragment.update(38, gameID, null);
+        }
+    }
+
+    // #392
+    private void deleteOneChatMessage(String[] commands) throws Exception{
+        int gameID = Integer.parseInt(commands[1]);
+        int msgIndex = Integer.parseInt(commands[2]);
+
+        ChatMessage deletedMsg = getGameByGameID(gameID).getChatMessageByMsgIndex(msgIndex);
+
+        deletedMsg.message = "DELETED";
+        deletedMsg.isDeleted = true;
+
+        if (appInFocus) {
+            currentFragment.update(392, gameID, null);
         }
     }
 
