@@ -897,4 +897,8 @@ public class AppManager {
             }
         }).start();
     }
+
+    public void gamePingTimer() {
+        startTimeMillis = System.currentTimeMillis();
+    }
 }
