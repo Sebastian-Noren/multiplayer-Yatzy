@@ -53,9 +53,7 @@ public class SettingsFragment extends Fragment implements Updatable {
     }
 
     private void requestPingFromServer(){
-        String pingRequest = "50";
         AppManager.getInstance().startPingTimer();
-        AppManager.getInstance().addClientRequest(pingRequest);
     }
 
     public  static void setPingText(){

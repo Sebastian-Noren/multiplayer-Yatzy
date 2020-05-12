@@ -857,6 +857,13 @@ public class AppManager {
     }
 
     public void startPingTimer() {
+        int bytePayload = 2000;
+        String payload = "";
+        for (int i = 0; i<bytePayload; i++ ){
+            payload = payload.concat("c");
+        }
+
+        addClientRequest(String.format("%s%s","50:", payload));
         startTimeMillis = System.currentTimeMillis();
     }
 
