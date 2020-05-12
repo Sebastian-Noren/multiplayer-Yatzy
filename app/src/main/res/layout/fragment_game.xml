@@ -25,10 +25,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:background="@drawable/info_background"
-        android:text="SEbbe is Playing"
         android:gravity="center"
         android:paddingTop="5dp"
         android:paddingBottom="5dp"
+        android:text="SEbbe is Playing"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="parent"
@@ -217,19 +217,19 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
         android:layout_width="wrap_content"
-        android:maxWidth="287dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:layout_marginTop="60dp"
         app:cardBackgroundColor="@color/colorTable"
         app:cardCornerRadius="10dp"
-        app:cardUseCompatPadding="true"
         app:cardElevation="2dp"
+        app:cardUseCompatPadding="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/header">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/scoreboard_frame"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"
@@ -570,7 +570,7 @@
 
             <HorizontalScrollView
                 android:id="@+id/scroll"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent">
 
                 <LinearLayout
@@ -605,8 +605,10 @@
             android:layout_height="match_parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

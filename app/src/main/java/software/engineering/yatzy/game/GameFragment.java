@@ -37,6 +37,7 @@ import java.util.Random;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -70,12 +71,14 @@ public class GameFragment extends Fragment implements Updatable {
     private BounceInterpolator interpolator = new BounceInterpolator();
     private Button rollButton;
     private ImageButton soundButton, chatButton;
+    private LinearLayout cardViewScoreBoard;
     private ConstraintLayout chatLayoutFrame;
     private boolean isChatOpen = false;
     private String requestToServer;
     private int lastplayer;
     private ArrayList<TableLayout> tables;
     private int gameIndex;
+    private int tableRowIndex;
     private boolean anyDiceSelected = false;
     private boolean scoreHasBeenPlaced = false;
     private Dice[] dices = {new Dice(DiceName.DICE1, 0, false), new Dice(DiceName.DICE2, 0, false),
@@ -349,7 +352,7 @@ public class GameFragment extends Fragment implements Updatable {
 
     private void requestPingFromServer(){
         String pingRequest = "50";
-        AppManager.getInstance().startPingTimer();
+        AppManager.getInstance().gamePingTimer();
         AppManager.getInstance().addClientRequest(pingRequest);
     }
 
@@ -995,7 +998,7 @@ public class GameFragment extends Fragment implements Updatable {
                     public void onClick(View view) {
                         if (state == State.PLACE_SCORE && AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())) {
                             TableRow row = (TableRow) view;
-                            int tableRowIndex = tableLayout.indexOfChild(row);
+                            tableRowIndex = tableLayout.indexOfChild(row);
 
                             String value = String.valueOf(calculateScoreValue(tableRowIndex));
                             String index = String.valueOf(tableRowIndex - 1);
@@ -1027,6 +1030,36 @@ public class GameFragment extends Fragment implements Updatable {
                             gameInfo.setText("Press to end Turn!");
                             rollButton.setText("End Turn");
                             state = State.END_TURN;
+                        }else if (state == State.END_TURN && AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())){
+                            TableRow row = (TableRow) view;
+                            int checkRow = tableLayout.indexOfChild(row);
+                            TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
+                            if (checkRow == tableRowIndex){
+                                cellText.setText("");
+                                scoreHasBeenPlaced = false;
+                                gameInfo.setText("Place your Score!");
+                                rollButton.setEnabled(false);
+
+                                //SubSum
+                                TableRow subSum = (TableRow) tableLayout.getChildAt(7);
+                                TextView subSumCellText = (TextView) subSum.getChildAt(0);
+                                int subSumValue = calculateSubSum(currentGame.getTurnState().getCurrentPlayer());
+                                subSumCellText.setText(String.valueOf(subSumValue));
+
+                                //Bonus
+                                TableRow bonus = (TableRow) tableLayout.getChildAt(8);
+                                TextView bonusCellText = (TextView) bonus.getChildAt(0);
+                                int bonusValue = checkBonus(subSumValue);
+                                bonusCellText.setText(String.valueOf(bonusValue));
+
+                                //Total score
+                                TableRow totalScore = (TableRow) tableLayout.getChildAt(18);
+                                TextView totalScoreCellText = (TextView) totalScore.getChildAt(0);
+                                int totalScoreValue = calculateTotalScore(subSumValue, bonusValue, currentGame.getTurnState().getCurrentPlayer());
+                                totalScoreCellText.setText(String.valueOf(totalScoreValue));
+                                state = State.PLACE_SCORE;
+                                checkRules();
+                            }
                         }
                     }
                 });
@@ -1041,6 +1074,13 @@ public class GameFragment extends Fragment implements Updatable {
         // Add all tables in the linearLayout view
         for (TableLayout layout : tables) {
             l.addView(layout);
+        }
+        if (tables.size() > 2){
+            int width = (int) (280 * scale + 0.5f);
+            ViewGroup.LayoutParams params = cardViewScoreBoard.getLayoutParams();
+            params.width = width;
+            params.height  = ViewGroup.LayoutParams.MATCH_PARENT;
+            cardViewScoreBoard.setLayoutParams(params);
         }
     }
 
@@ -1276,6 +1316,7 @@ public class GameFragment extends Fragment implements Updatable {
         Log.i(TAG, "Init Views");
         artEngine = new ArtEngine(getResources());
         soundEngine = new SoundEngine(getContext());
+        cardViewScoreBoard = view.findViewById(R.id.scoreboard_frame);
         rollButton = view.findViewById(R.id.rollBtn);
         soundButton = view.findViewById(R.id.soundBtn);
         chatButton = view.findViewById(R.id.chatBtn);
