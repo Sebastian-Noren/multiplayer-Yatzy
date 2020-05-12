@@ -232,6 +232,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
     }
 
+
     @Override
     public int getItemCount() {
         return ChatList.size();
@@ -292,6 +293,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             });
         }
     }
+
+
 
     public ChatMessage getMessageByMessageIndex(int index) {
         for (ChatMessage message : ChatList) {

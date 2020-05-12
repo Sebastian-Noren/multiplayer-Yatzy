@@ -19,6 +19,21 @@
         app:srcCompat="@drawable/board" />
 
 
+    <TextView
+        android:id="@+id/game_info"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/info_background"
+        android:text="SEbbe is Playing"
+        android:gravity="center"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/header" />
+
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="0dp"
@@ -166,9 +181,26 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:layout_weight="1"
-            android:gravity="end"
             android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/latenzy_game"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|start"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/info_background"
+                android:gravity="center"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="Latency: XXX ms"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
             <Button
                 android:id="@+id/rollBtn"
@@ -342,7 +374,8 @@
                         android:gravity="center|start"
                         android:paddingTop="3dp"
                         android:paddingBottom="3dp"
-                        android:text="Sub total" />
+                        android:text="Sub total"
+                        android:textStyle="bold" />
                 </TableRow>
 
                 <TableRow
@@ -359,7 +392,8 @@
                         android:gravity="center|start"
                         android:paddingTop="3dp"
                         android:paddingBottom="3dp"
-                        android:text="Bonus" />
+                        android:text="Bonus"
+                        android:textStyle="bold" />
                 </TableRow>
 
                 <TableRow
@@ -556,15 +590,14 @@
         android:layout_width="0dp"
         android:layout_height="500dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:elevation="5dp"
         android:fillViewport="true"
         android:visibility="invisible"
-        android:elevation="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout">
+        app:layout_constraintTop_toTopOf="parent">
 
         <include
             layout="@layout/chat_layout"

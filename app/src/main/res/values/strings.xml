@@ -6,6 +6,10 @@
     <string name="settings">Settings</string>
     <string name="highscore">Highscore</string>
     <string name="main">Main</string>
+    <string name="aboutUs">This application is developed in the course software engineering. 5 students from Högskolan Kristianstad in Sweden
+have been working together to answer the research questions \"\how to develop a smooth mobile multiplayer
+application for all users?\"\ and \"\How to handle data communication fluently and safe with
+TCP?\"\ The result is this stunning and well preforming application considering the usage of TCP communication.</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

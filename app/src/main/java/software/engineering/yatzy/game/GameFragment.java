@@ -4,15 +4,16 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.BounceInterpolator;
@@ -25,7 +26,6 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
-
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -61,7 +60,7 @@ public class GameFragment extends Fragment implements Updatable {
     private static final int SCOREBOARD_SIZE = 18;
     private static final float DICE_START_POSITIONX = 500f;
     private NavController navController;
-    private TextView turnStateText;
+    private TextView turnStateText, gameInfo, latency;
     private ArtEngine artEngine;
     private SoundEngine soundEngine;
     private Game currentGame;
@@ -74,16 +73,14 @@ public class GameFragment extends Fragment implements Updatable {
     private ConstraintLayout chatLayoutFrame;
     private boolean isChatOpen = false;
     private String requestToServer;
-    private int tableRowIndex;
     private int lastplayer;
     private ArrayList<TableLayout> tables;
     private int gameIndex;
-
+    private boolean anyDiceSelected = false;
+    private boolean scoreHasBeenPlaced = false;
     private Dice[] dices = {new Dice(DiceName.DICE1, 0, false), new Dice(DiceName.DICE2, 0, false),
             new Dice(DiceName.DICE3, 0, false), new Dice(DiceName.DICE4, 0, false),
             new Dice(DiceName.DICE5, 0, false)};
-    // Temp variable
-    private boolean scoreHasBeenPlaced = false;
 
     // The Update method
     @Override
@@ -114,9 +111,13 @@ public class GameFragment extends Fragment implements Updatable {
                             cellText.setText(String.valueOf(currentGame.getPlayer(lastplayer).getScoreBoardElement(i - 1)));
                         }
                     }
+                    tableCalculateSums(lastplayer);
                     removeLastCurrentPlayersTable(lastplayer);
+                    scoreHasBeenPlaced = false;
                     currentGame.setTurnState(AppManager.getInstance().getGameByGameID(specifier).getTurnState());
                     setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
+                    String str = currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName() + " is playing!";
+                    gameInfo.setText(str);
                     Log.e(TAG, "onCreateView: " + currentGame.toString());
                     checkIfPlayerIsAllowedToPlay();
                 }
@@ -143,7 +144,13 @@ public class GameFragment extends Fragment implements Updatable {
                         chatAdapter.notifyDataSetChanged();
 
                     }
-                    //chatAdapter.notifyDataSetChanged();
+                    recyclerViewChat.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            recyclerViewChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+
+                        }
+                    });
 
                 }
                 break;
@@ -154,13 +161,28 @@ public class GameFragment extends Fragment implements Updatable {
                     ChatMessage message = AppManager.getInstance().getGameByGameID(currentGame.getGameID()).messages.get(latest);
 
                     chatList.add(message);
-                    chatAdapter.notifyDataSetChanged();
+                    chatAdapter.notifyItemInserted(latest);
+
+                    recyclerViewChat.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            recyclerViewChat.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+
+                        }
+                    });
 
                 }
 
                 break;
+            case 392:
+
+                break;
             case 40:
                 Log.e(TAG, exceptionMessage);
+                break;
+            case 51:
+                String str = MessageFormat.format("Latency: {0} ms", String.valueOf(AppManager.getInstance().latency));
+                latency.setText(str);
                 break;
             default:
                 Log.d(TAG, "Unknown request from server...");
@@ -184,6 +206,7 @@ public class GameFragment extends Fragment implements Updatable {
         AppManager.getInstance().currentFragment = this;
         navController = Navigation.findNavController(Objects.requireNonNull(getActivity()), R.id.nav_host_fragment);
         getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.endColorBar));
+        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
         // Init all views in the game
@@ -193,7 +216,7 @@ public class GameFragment extends Fragment implements Updatable {
 
         //Start game sound
         soundEngine.createApplicationSound();
-        soundEngine.createGameBgSound();
+        //   soundEngine.createGameBgSound();
 
         //Get the game user clicked on and get it from games list.
         gameIndex = getArguments().getInt("gameToPlay");
@@ -206,6 +229,10 @@ public class GameFragment extends Fragment implements Updatable {
 
         addTable(getContext(), view);
         setCurrentPlayersTable(currentGame.getTurnState().getCurrentPlayer());
+        String str = currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName() + " is playing!";
+        gameInfo.setText(str);
+        String str2 = "Latency: - ms";
+        latency.setText(str2);
         checkIfPlayerIsAllowedToPlay();
 
         // Roll button
@@ -230,6 +257,7 @@ public class GameFragment extends Fragment implements Updatable {
                             }
                         }
                         AppManager.getInstance().addClientRequest(rollturnRequest.toString().trim());
+                        requestPingFromServer();
                         break;
                     case PLACE_SCORE:
                         Log.i(TAG, "PLACE_SCORE STATE! ");
@@ -238,6 +266,7 @@ public class GameFragment extends Fragment implements Updatable {
                     case END_TURN:
                         Log.i(TAG, "END TURN STATE! ");
                         AppManager.getInstance().addClientRequest(requestToServer);
+                        requestPingFromServer();
                         deselectAllDice();
                         resetColors();
                         rollButton.setEnabled(false);
@@ -252,6 +281,7 @@ public class GameFragment extends Fragment implements Updatable {
         soundButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                soundEngine.buttonClick();
                 if (soundEngine.isSoundOn()) {
                     soundEngine.pauseGameBgSound();
                     soundButton.setImageResource(R.drawable.sound_off);
@@ -266,6 +296,7 @@ public class GameFragment extends Fragment implements Updatable {
         chatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                soundEngine.buttonClick();
                 if (isChatOpen) {
                     closeChat();
                 } else {
@@ -322,13 +353,24 @@ public class GameFragment extends Fragment implements Updatable {
         return view;
     }
 
+    private void requestPingFromServer(){
+        String pingRequest = "50";
+        AppManager.getInstance().startPingTimer();
+        AppManager.getInstance().addClientRequest(pingRequest);
+    }
+
     private void checkIfPlayerIsAllowedToPlay() {
         if (AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())) {
             rollButton.setEnabled(true);
             // set current playing state
-            if (currentGame.getTurnState().getRollTurn() == 0) {
+            if (currentGame.getTurnState().getRollTurn() == 1) {
                 state = State.NEWPLAYER;
                 Log.i(TAG, "Init State: " + state);
+            } else if (currentGame.getTurnState().getRollTurn() == 3) {
+                state = State.PLACE_SCORE;
+                gameInfo.setText("Place your Score!");
+                Log.i(TAG, "Init State: " + state);
+                checkRules();
             } else {
                 state = State.PLAYING;
                 Log.i(TAG, "Init State: " + state);
@@ -354,18 +396,26 @@ public class GameFragment extends Fragment implements Updatable {
 
     private void initDice() {
         initDiceAnimation();
-        if (state == State.NEWPLAYER || currentGame.getTurnState().getRollTurn() == 0) {
+
+        if (state == State.NEWPLAYER) {
             for (ImageView diceImage : diceImages) {
                 diceImage.setTranslationX(DICE_START_POSITIONX);
                 startFirstDiceAnimation();
             }
             Log.i(TAG, "InitDice(): 1");
-        } else {
+        } else if (currentGame.getTurnState().getRollTurn() == 1){
+            for (ImageView diceImage : diceImages) {
+                diceImage.setTranslationX(DICE_START_POSITIONX);
+                startFirstDiceAnimation();
+            }
+            Log.i(TAG, "InitDice(): Spectator first round");
+        }
+        else {
             Random rand = new Random();
             for (ImageView diceImage : diceImages) {
                 diceImage.setRotation(rand.nextInt(360));
             }
-            Log.i(TAG, "InitDice(): 2");
+            Log.i(TAG, "InitDice(): 3");
             initDiceGraphicCurrentPlay();
         }
     }
@@ -393,10 +443,12 @@ public class GameFragment extends Fragment implements Updatable {
                 }
                 updateDiceGraphic();
                 deselectAllDice();
-                rollButton.setText("Re roll");
-                rollButton.setEnabled(true);
-                state = State.PLAYING;
-                Log.i(TAG, "Init State: " + state);
+                if (AppManager.getInstance().loggedInUser.getNameID().equals(currentGame.getPlayer(currentGame.getTurnState().getCurrentPlayer()).getName())) {
+                    rollButton.setText("Re roll");
+                    rollButton.setEnabled(true);
+                    state = State.PLAYING;
+                    Log.i(TAG, "Init State: " + state);
+                }
             }
         }).start();
     }
@@ -431,8 +483,10 @@ public class GameFragment extends Fragment implements Updatable {
                 rollButton.setEnabled(true);
                 //When 3 turns ends and move to another player
                 if (currentGame.getTurnState().getRollTurn() > 2 && !scoreHasBeenPlaced) {
+                    gameInfo.setText("Place your Score!");
                     rollButton.setEnabled(false);
                     state = State.PLACE_SCORE;
+                    checkRules();
                     Log.i(TAG, "Init State: " + state);
                 }
             }
@@ -475,6 +529,11 @@ public class GameFragment extends Fragment implements Updatable {
             diceImages[val].setBackground(artEngine.getHighlight());
             dices[val].setSelected(true);
             if (state == State.PLACE_SCORE) {
+                for (int i = 0; i < diceImages.length; i++) {
+                    if (dices[i].isSelected()) {
+                        anyDiceSelected = true;
+                    }
+                }
                 checkRules();
             }
         } else {
@@ -482,6 +541,16 @@ public class GameFragment extends Fragment implements Updatable {
             dices[val].setSelected(false);
             Log.i(TAG, String.format("%s deselected!", dices[val].getDiceName()));
             if (state == State.PLACE_SCORE) {
+                int count = 0;
+                for (int i = 0; i < diceImages.length; i++) {
+                    if (dices[i].isSelected()) {
+                        count++;
+                        Log.i(TAG, "Counter : " + count);
+                    }
+                }
+                if (count == 0) {
+                    anyDiceSelected = false;
+                }
                 checkRules();
             }
         }
@@ -507,6 +576,7 @@ public class GameFragment extends Fragment implements Updatable {
                 diceRule[i] = -1;
             }
         }
+        Log.d(TAG, "checkRules True/False: " + anyDiceSelected);
         Arrays.sort(diceRule);
 
         int ok = getResources().getColor(R.color.colorFieldOK);
@@ -516,59 +586,92 @@ public class GameFragment extends Fragment implements Updatable {
 
         for (int i = 1; i < tables.get(x).getChildCount(); i++) {
             TableRow row = (TableRow) tables.get(x).getChildAt(i);
+            TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
+            boolean cellHasScore = Utilities.stringIsNumber(cellText.getText().toString());
+
             switch (i) {
                 case 1: // ones
-                    if (rules.singelSide(1, diceRule)) {
+                    if (rules.singelSide(1, diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 2: // Twos
-                    if (rules.singelSide(2, diceRule)) {
+                    if (rules.singelSide(2, diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 3: //Threes
-                    if (rules.singelSide(3, diceRule)) {
+                    if (rules.singelSide(3, diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 4: //Fours
-                    if (rules.singelSide(4, diceRule)) {
+                    if (rules.singelSide(4, diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 5: //Fives
-                    if (rules.singelSide(5, diceRule)) {
+                    if (rules.singelSide(5, diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 6: //Six
-                    if (rules.singelSide(6, diceRule)) {
+                    if (rules.singelSide(6, diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 7: //Sub total
@@ -576,77 +679,125 @@ public class GameFragment extends Fragment implements Updatable {
                 case 8: //Bonus
                     break;
                 case 9: // Pair
-                    if (rules.onePair(diceRule)) {
+                    if (rules.onePair(diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 10: // Two Pairs
-                    if (rules.twoPair(diceRule)) {
+                    if (rules.twoPair(diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 11: // 3 of a kind
-                    if (rules.threeOfAKind(diceRule)) {
+                    if (rules.threeOfAKind(diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 12: //4 of a kind
-                    if (rules.fourOfAKind(diceRule)) {
+                    if (rules.fourOfAKind(diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 13: // Small Straight
-                    if (rules.smallStraight(diceRule)) {
+                    if (rules.smallStraight(diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 14: //Large Straight
-                    if (rules.largeStraight(diceRule)) {
+                    if (rules.largeStraight(diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 15: //Full house
-                    if (rules.fullHouse(diceRule)) {
+                    if (rules.fullHouse(diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 16: // Chance
+                        if (!cellHasScore) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
+
                     break;
                 case 17: //Yatzy
-                    if (rules.yatzy(diceRule)) {
+                    if (rules.yatzy(diceRule) && !cellHasScore) {
                         row.setBackgroundColor(ok);
                         row.setClickable(true);
                     } else {
-                        row.setBackgroundColor(notOk);
-                        row.setClickable(false);
+                        if (!cellHasScore && !anyDiceSelected) {
+                            row.setBackgroundColor(ok);
+                            row.setClickable(true);
+                        } else {
+                            row.setBackgroundColor(notOk);
+                            row.setClickable(false);
+                        }
                     }
                     break;
                 case 18: //Grand Total
@@ -655,9 +806,7 @@ public class GameFragment extends Fragment implements Updatable {
                     Log.e(TAG, "Problem occurred!");
                     break;
             }
-
         }
-
     }
 
     private int calculateSubSum() {
@@ -674,57 +823,45 @@ public class GameFragment extends Fragment implements Updatable {
         }
         return sum;
     }
-
+  
     // Calculated place score
     private int calculateScoreValue(int index) {
         switch (index) {
             case 1:
-                return getSumSelectedDice(1);
+                return !anyDiceSelected ? 0 : caclculateSumSelectedDiceSide(1);
             case 2:
-                return getSumSelectedDice(2);
+                return !anyDiceSelected ? 0 : caclculateSumSelectedDiceSide(2);
             case 3:
-                return getSumSelectedDice(3);
+                return !anyDiceSelected ? 0 : caclculateSumSelectedDiceSide(3);
             case 4:
-                return getSumSelectedDice(4);
+                return !anyDiceSelected ? 0 : caclculateSumSelectedDiceSide(4);
             case 5:
-                return getSumSelectedDice(5);
+                return !anyDiceSelected ? 0 : caclculateSumSelectedDiceSide(5);
             case 6:
-                return getSumSelectedDice(6);
-            case 7:
-                //                   Log.i(TAG, "Sub total");
+                return !anyDiceSelected ? 0 : caclculateSumSelectedDiceSide(6);
+            case 7: // SubTotal do nothing here
                 break;
-            case 8:
-                //                   Log.i(TAG, "Bonus");
+            case 8: // Bonus do nothing here
                 break;
             case 9:
-//                    Log.i(TAG, "Pair");
-                break;
+                return !anyDiceSelected ? 0 : calculateSelectedDice();
             case 10:
-                //                   Log.i(TAG, "2Pairs");
-                break;
+                return !anyDiceSelected ? 0 : calculateSelectedDice();
             case 11:
-                //                  Log.i(TAG, "3 of a kind");
-
-                break;
+                return !anyDiceSelected ? 0 : calculateSelectedDice();
             case 12:
-                //                  Log.i(TAG, "4 of a kind");
-
-                break;
+                return !anyDiceSelected ? 0 : calculateSelectedDice();
             case 13: //Small straight fixed score: 15;
-                return 15;
+                return !anyDiceSelected ? 0 : 15;
             case 14: //Large straight fixed score: 20;
-                return 20;
+                return !anyDiceSelected ? 0 : 20;
             case 15:
-                //                  Log.i(TAG, "Full House");
-                break;
+                return !anyDiceSelected ? 0 : calculateAllDice();
             case 16:
-                //                  Log.i(TAG, "Chance");
-                break;
+                return calculateAllDice();
             case 17: // yatzy fixed score: 50
-                return 50;
-            case 18:
-                //                  Log.i(TAG, "Grand Total");
-
+                return !anyDiceSelected ? 0 : 50;
+            case 18: //Grand Total do nothing here
                 break;
             default:
                 Log.e(TAG, "Problem occurred!");
@@ -733,7 +870,63 @@ public class GameFragment extends Fragment implements Updatable {
         return -1;
     }
 
-    private int getSumSelectedDice(int side) {
+    private int calculateAllDice() {
+        int sum = 0;
+        for (int i = 0; i < diceImages.length; i++) {
+            sum += dices[i].getDiceValue();
+        }
+        return sum;
+    }
+
+    private int checkBonus(int score) {
+        int bonusSum = 0;
+
+        if (score >= 63) {
+            bonusSum = 50;
+        }
+        return bonusSum;
+    }
+
+    private int calculateSubSum(int player) {
+        int sum = 0;
+        for (int i = 1; i < 7; i++) {
+            TableRow row = (TableRow) tables.get(player).getChildAt(i);
+            TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
+            try {
+                sum += Integer.parseInt(cellText.getText().toString());
+            } catch (NumberFormatException e) {
+                sum += 0;
+            }
+        }
+        return sum;
+    }
+
+    private int calculateTotalScore(int subSumValue, int bonusValue, int player) {
+        int sum = 0;
+        for (int i = 9; i < 18; i++) {
+            TableRow row = (TableRow) tables.get(player).getChildAt(i);
+            TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
+            try {
+                sum += Integer.parseInt(cellText.getText().toString());
+            } catch (NumberFormatException e) {
+                sum += 0;
+            }
+        }
+        sum += subSumValue + bonusValue;
+        return sum;
+    }
+
+    private int calculateSelectedDice() {
+        int sum = 0;
+        for (int i = 0; i < diceImages.length; i++) {
+            if (dices[i].isSelected()) {
+                sum += dices[i].getDiceValue();
+            }
+        }
+        return sum;
+    }
+
+    private int caclculateSumSelectedDiceSide(int side) {
         int sum = 0;
         for (int i = 0; i < diceImages.length; i++) {
             if (dices[i].isSelected() && dices[i].getDiceValue() == side) {
@@ -812,7 +1005,7 @@ public class GameFragment extends Fragment implements Updatable {
                     public void onClick(View view) {
                         if (state == State.PLACE_SCORE) {
                             TableRow row = (TableRow) view;
-                            tableRowIndex = tableLayout.indexOfChild(row);
+                            int tableRowIndex = tableLayout.indexOfChild(row);
 
                             String value = String.valueOf(calculateScoreValue(tableRowIndex));
                             String index = String.valueOf(tableRowIndex - 1);
@@ -821,13 +1014,27 @@ public class GameFragment extends Fragment implements Updatable {
                             TextView cellText = (TextView) row.getChildAt(0); // only one child (textview)
                             cellText.setText(String.valueOf(calculateScoreValue(tableRowIndex)));
 
+                            //SubSum
                             TableRow subSum = (TableRow) tableLayout.getChildAt(7);
                             TextView subSumCellText = (TextView) subSum.getChildAt(0);
-                            subSumCellText.setText(String.valueOf(calculateSubSum()));
+                            int subSumValue = calculateSubSum(currentGame.getTurnState().getCurrentPlayer());
+                            subSumCellText.setText(String.valueOf(subSumValue));
+
+                            //Bonus
+                            TableRow bonus = (TableRow) tableLayout.getChildAt(8);
+                            TextView bonusCellText = (TextView) bonus.getChildAt(0);
+                            int bonusValue = checkBonus(subSumValue);
+                            bonusCellText.setText(String.valueOf(bonusValue));
+
+                            //Total score
+                            TableRow totalScore = (TableRow) tableLayout.getChildAt(18);
+                            TextView totalScoreCellText = (TextView) totalScore.getChildAt(0);
+                            int totalScoreValue = calculateTotalScore(subSumValue, bonusValue, currentGame.getTurnState().getCurrentPlayer());
+                            totalScoreCellText.setText(String.valueOf(totalScoreValue));
 
                             scoreHasBeenPlaced = true;
                             rollButton.setEnabled(true);
-                            rollButton.setText("OK");
+                            rollButton.setText("End Turn");
                             state = State.END_TURN;
                         }
                     }
@@ -838,14 +1045,37 @@ public class GameFragment extends Fragment implements Updatable {
             }
             // add new table in array of tables
             tables.add(tableLayout);
-            TableRow subSum = (TableRow) tables.get(i).getChildAt(7);
-            TextView subSumCellText = (TextView) subSum.getChildAt(0);
-            subSumCellText.setText(String.valueOf(calculateSubSum()));
+            tableCalculateSums(i);
         }
         // Add all tables in the linearLayout view
         for (TableLayout layout : tables) {
             l.addView(layout);
         }
+    }
+
+    private void tableCalculateSums(int i) {
+
+        //SubSum
+        TableRow subSum = (TableRow) tables.get(i).getChildAt(7);
+        TextView subSumCellText = (TextView) subSum.getChildAt(0);
+        int subSumValue = calculateSubSum(i);
+        subSumCellText.setTypeface(null, Typeface.BOLD);
+        subSumCellText.setText(String.valueOf(subSumValue));
+
+        //Bonus
+        TableRow bonus = (TableRow) tables.get(i).getChildAt(8);
+        TextView bonusCellText = (TextView) bonus.getChildAt(0);
+        int bonusValue = checkBonus(subSumValue);
+        bonusCellText.setTypeface(null, Typeface.BOLD);
+        bonusCellText.setText(String.valueOf(bonusValue));
+
+        //Total score
+        TableRow totalScore = (TableRow) tables.get(i).getChildAt(18);
+        TextView totalScoreCellText = (TextView) totalScore.getChildAt(0);
+        int totalScoreValue = calculateTotalScore(subSumValue, bonusValue, i);
+        totalScoreCellText.setTypeface(null, Typeface.BOLD);
+        totalScoreCellText.setText(String.valueOf(totalScoreValue));
+
     }
 
     private void setCurrentPlayersTable(int playerIDIndex) {
@@ -893,23 +1123,16 @@ public class GameFragment extends Fragment implements Updatable {
                 if (message != null && !TextUtils.isEmpty(message)) {
 
                     if (doubleClicked) {
-                        // String[] response = chatList.get(positionClicked).split(":");
 
                         int replyToIndex = chatList.get(positionClicked).msgIndex;
 
                         AppManager.getInstance().addClientRequest("37:" + currentGame.getGameID() + ":" + message + ":" + replyToIndex);
-                        //String[] currentSender = message.split(":");
 
-                        //TODO REMOVE ALIREPLY! and WHOISSENDING
-                        //AliReply:whoIsReplying:Towhom:theirMessageWeReplyTo:OurReplyMessage
-                        // chatList.add("AliReply:" + AppManager.getInstance().loggedInUser.getNameID() + ":" + response[0] + ":" + response[1] + ":" + " " + message + ":" + currentTime);
 
                         editTextChat.setText("");
                         editTextChat.setHint("");
 
                         doubleClicked = false;
-
-                        //editTextChat.setBackgroundColor(editTextChat.get);
 
                         chatAdapter.notifyDataSetChanged();
 
@@ -933,6 +1156,7 @@ public class GameFragment extends Fragment implements Updatable {
         //add array to chatAdapter
         chatAdapter = new ChatAdapter(chatList);
         recyclerViewChat.setAdapter(chatAdapter);
+
 
         //if we  double click the text
         chatAdapter.setOnItemClickListener(new ChatAdapter.ItemClickListener() {
@@ -959,25 +1183,25 @@ public class GameFragment extends Fragment implements Updatable {
 
                     // When we have removed our message, it's no longer activated, therefor we cant respond or double
                     //click the removed text (does not work without this line)
-                    if (linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_right).isActivated()) {
+                    //if (linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_right).isActivated()) {
 
-                        //currently clicked item will start animation for itself
-                        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
-                        linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_left).startAnimation(animation);
+                    //currently clicked item will start animation for itself
+                    Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
+                    linearLayoutManager.findViewByPosition(position).findViewById(R.id.chat_message_left).startAnimation(animation);
 
-                        //When double clicked this is set to true
-                        //so that next time we double click it will go to the if statement above and reset
-                        //settings meaning we don't want to make a reply.
-                        ignore = true;
+                    //When double clicked this is set to true
+                    //so that next time we double click it will go to the if statement above and reset
+                    //settings meaning we don't want to make a reply.
+                    ignore = true;
 
-                        Toast.makeText(getActivity(), "Double clicked", Toast.LENGTH_SHORT).show();
-                        doubleClicked = true;
-                        positionClicked = position;
+                    Toast.makeText(getActivity(), "Double clicked", Toast.LENGTH_SHORT).show();
+                    doubleClicked = true;
+                    positionClicked = position;
 
-                        //name of person replying to
-                        String responseName = chatList.get(positionClicked).senderName;
-                        editTextChat.setHint("Reply to " + responseName + ":");
-                    }
+                    //name of person replying to
+                    String responseName = chatList.get(positionClicked).senderName;
+                    editTextChat.setHint("Reply to " + responseName + ":");
+                    // }
 
                 }
                 //1. first time after the if statement fail, we go down here and set lastTime to be curreTime variable
@@ -1013,7 +1237,7 @@ public class GameFragment extends Fragment implements Updatable {
                 switch (direction) {
                     case ItemTouchHelper.LEFT:
 
-                        AppManager.getInstance().addClientRequest("39a:" + currentGame.getGameID() + ":" + chatList.get(position));
+                        AppManager.getInstance().addClientRequest("391:" + currentGame.getGameID() + ":" + chatList.get(position));
 
 //                        //Instead we will send this to server, and it will remove this position in a general method that
 //                        //all other users will also use so this specific position is deleted
@@ -1066,6 +1290,8 @@ public class GameFragment extends Fragment implements Updatable {
         chatButton = view.findViewById(R.id.chatBtn);
         turnStateText = view.findViewById(R.id.tgame_currentTurn);
         chatLayoutFrame = view.findViewById(R.id.chat_window);
+        gameInfo = view.findViewById(R.id.game_info);
+        latency = view.findViewById(R.id.latenzy_game);
         diceImages = new ImageView[5];
         diceAnim = new AnimationDrawable[5];
         //initialize dice views
@@ -1093,6 +1319,7 @@ public class GameFragment extends Fragment implements Updatable {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "GameFragment: In the OnCreate event()");
+
         // This callback will only be called when Fragment is at least Started.
         OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
             @Override
@@ -1140,6 +1367,7 @@ public class GameFragment extends Fragment implements Updatable {
     public void onStop() {
         super.onStop();
         Log.d(TAG, "GameFragment: In the onStop() event");
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     //10

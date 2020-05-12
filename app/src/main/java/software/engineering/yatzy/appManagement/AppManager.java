@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
@@ -67,6 +68,10 @@ public class AppManager {
     // Searchable client names for creating new game
     public ArrayList<String> searchableNames;
 
+    //variables that hold timer Data
+    public long startTimeMillis;
+    public long finalTimeMillis;
+    public long latency;
     // ============================ SINGLETON =======================================
 
     private AppManager() {
@@ -229,6 +234,10 @@ public class AppManager {
                     break;
                 case "41": // Connection to cloud lost/terminated
                     lostCloudConnection(commands[1]);
+                    break;
+                case "51":
+                    //ping sent from server
+                    calculatePingTimer();
                     break;
                 default:
                     //writeToast("Unknown request from server: " + command);
@@ -416,7 +425,7 @@ public class AppManager {
             if (game.getGameID() == gameID) {
                 game.setTurnState(turnState);
                 game.updateScoreBoard(indexOfPreviousPlayer, scoreboardIndex, scoreboardValue);
-                if (game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                if (game.getPlayer(currentPlayer).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
             }
@@ -458,7 +467,7 @@ public class AppManager {
                 game.setState(gameState);
                 game.setTurnState(turnState);
                 game.updatePlayerList(playerList);
-                if (game.getPlayer(rollNr).getName().equals(loggedInUser.getNameID())) {
+                if (game.getPlayer(currentPlayer).getName().equals(loggedInUser.getNameID())) {
                     // Notification: Your turn in "GameName"
                 }
             }
@@ -748,7 +757,7 @@ public class AppManager {
                     objectOutput.writeObject(loggedInUser);
                 } catch (IOException e) {
                     Log.i(TAG, e.getMessage());
-                    //writeToast("Unable to write user tho cache");
+                    //writeToast("Unable to write user to cache");
                 }
             }
         }).start();
@@ -840,4 +849,52 @@ public class AppManager {
         }
     }
 
+    public void calculatePingTimer() {
+        finalTimeMillis = System.currentTimeMillis();
+        latency = finalTimeMillis - startTimeMillis;
+        currentFragment.update(51, -1, null);
+        Log.d("Info", "Latency = " + String.valueOf(latency));
+    }
+
+    public void startPingTimer() {
+        startTimeMillis = System.currentTimeMillis();
+    }
+
+    public void logOutUser() {
+        //set loggedInUser to null values.
+        loggedInUser = new LoggedInUser("", null, 0, 0);
+        writeUserToCache();
+
+        try {
+            String logOutRequest = "3";
+            addClientRequest(logOutRequest);
+        } catch (Exception e) {
+            //Ignore
+        }
+
+        final Handler logOutHandler = new Handler(Looper.getMainLooper());
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    //Ignores since in seperate thread
+                }
+
+                logOutHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (appInFocus && isBound) {
+                            //Stop connection to cloud
+                            networkService.stopConnectionToCloudServer();
+                            //return to loginScreen
+                            navController.navigate(R.id.navigation_Login);
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
 }

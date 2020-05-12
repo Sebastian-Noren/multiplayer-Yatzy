@@ -121,7 +121,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         invitationCounter = view.findViewById(R.id.invitation_counter);
         recyclerView = view.findViewById(R.id.overview_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-      
+
         inviteCounter = 0;
         for (int i = 0; i < AppManager.getInstance().gameList.size(); i++) {
             boolean pending = AppManager.getInstance().gameList.get(i).getPlayerByName(accountName).participation == PlayerParticipation.PENDING;
@@ -135,6 +135,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                 inviteCounter++;
             }
         }
+        changeInviteFrame();
+
 
         gameAdapter = new GameOverviewAdapter(getContext(), gameSessionLists);
         recyclerView.setAdapter(gameAdapter);
@@ -152,7 +154,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         fabInvite.setTranslationX(translationYX);
         textFabInvite.setTranslationX(translationYX);
 
-        changeInviteFrame();
+
 
     }
 
@@ -235,8 +237,8 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         inviteCounter -= minusInviteCounter;
         changeInviteFrame();
 
-     //   gameSessionLists.addAll(listOfAccepted);
-     //   gameAdapter.notifyDataSetChanged();
+        gameSessionLists.addAll(listOfAccepted);
+        gameAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -247,6 +249,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
         String description;
         switch (protocolIndex) {
             case 15:
+                Utilities.toastMessage(getContext(),"Case 15 happend!");
                 for (Game game : AppManager.getInstance().gameList) {
                     if (game.getGameID() == gameID && game.getPlayerByName(AppManager.getInstance().loggedInUser.getNameID()).participation != PlayerParticipation.HOST) {
                         inviteCounter++;
@@ -264,6 +267,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                 }
                 break;
             case 16:
+                Utilities.toastMessage(getContext(),"Case 16 happend!");
                 for (Game game : AppManager.getInstance().gameList) {
                     if (game.getGameID() == gameID) {
                         gameRoom = game.getGameName();
@@ -277,8 +281,15 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
                 }
                 break;
             case 21:
-
                 Utilities.toastMessage(getContext(),"Case 21 happend!");
+                for (int i = 0; i < gameSessionLists.size() ; i++) {
+                    if (gameSessionLists.get(i).getRoomID() == gameID){
+                        gameSessionLists.get(i).setDescription("Game in session");
+                        gameSessionLists.get(i).setStatus(GameState.ONGOING.toString());
+                        gameAdapter.notifyDataSetChanged();
+                        break;
+                    }
+                }
                 break;
             case 22:
 
@@ -339,6 +350,7 @@ public class HomeFragment extends Fragment implements CreateGameDialog.OnSelecte
     //6
     @Override
     public void onResume() {
+        gameAdapter.notifyDataSetChanged();
         super.onResume();
         Log.d(TAG, "HomeFragment: In the onResume() event");
     }

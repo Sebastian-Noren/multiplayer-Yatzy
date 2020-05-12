@@ -194,5 +194,4 @@ public class LoginFragment extends Fragment implements Updatable {
         super.onDetach();
         Log.d(tag, "LoginFragment: In the onDetach() event");
     }
-
 }
