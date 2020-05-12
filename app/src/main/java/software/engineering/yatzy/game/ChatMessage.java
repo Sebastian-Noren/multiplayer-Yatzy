@@ -11,14 +11,16 @@ public class ChatMessage {
     public String message;
     public String timeStamp;
     public int replyToMsgIndex; // -1 if not an answer
+    public boolean isDeleted;
 
 
-    public ChatMessage(int msgIndex, String senderName, String message, String timeStamp, int replyToMsgIndex) {
+    public ChatMessage(int msgIndex, String senderName, String message, String timeStamp, int replyToMsgIndex, boolean isDeleted) {
         this.msgIndex = msgIndex;
         this.senderName = senderName;
         this.message = message;
         this.timeStamp = timeStamp;
         this.replyToMsgIndex = replyToMsgIndex;
+        this.isDeleted = isDeleted;
         adjustTimeStamp();
     }
 
